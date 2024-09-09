@@ -1,0 +1,9 @@
+name: ChainPlugin
+version: '1.0-SNAPSHOT'
+main: org.imradigamer.chainPlugin.ChainPlugin
+api-version: '1.21'
+authors: [ ImRadiGamer ]
+commands:
+  chain:
+    description: Commands for managing the chain
+    usage: /chain <origin|start|stop>
