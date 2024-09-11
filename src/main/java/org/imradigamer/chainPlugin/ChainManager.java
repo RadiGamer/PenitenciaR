@@ -1,5 +1,6 @@
 package org.imradigamer.chainPlugin;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -7,7 +8,6 @@ import org.bukkit.World;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -17,63 +17,6 @@ public class ChainManager {
     private static Location chainOrigin;
     private static final Map<Player, List<ItemDisplay>> chainedPlayers = new HashMap<>();
     private static final Map<Player, Location> initialChainingLocations = new HashMap<>();
-
-    public static void giveKeysToPlayers() {
-        for (Player player : chainedPlayers.keySet()) {
-            ItemStack key = new ItemStack(Material.TRIPWIRE_HOOK);
-            ItemMeta meta = key.getItemMeta();
-            meta.setDisplayName("Llave");
-            key.setItemMeta(meta);
-
-            player.getInventory().addItem(key);
-        }
-    }
-
-    public static boolean hasKeyPermission(Player player) {
-        return player.hasPermission("chain.key");
-    }
-
-    public static void useKey(Player player) {
-        if (!hasKeyPermission(player)) {
-            player.sendMessage("Tu llave parece no funcionar!"); //TODO AQUI NO ESTA JALANDO EL MENSAJE
-            return;
-        }
-
-         //TODO Testear esta vaina
-        freeSpecificPlayers(6);
-    }
-
-    private static void freeSpecificPlayers(int numberOfPlayersToFree) {
-        List<Player> playersToFree = new ArrayList<>(chainedPlayers.keySet());
-
-        playersToFree.removeIf(player -> player.hasPermission("chain.keep"));
-
-
-        if (numberOfPlayersToFree > playersToFree.size()) {
-            numberOfPlayersToFree = playersToFree.size();
-        }
-
-        for (int i = 0; i < numberOfPlayersToFree; i++) {
-            Player playerToFree = playersToFree.get(i);
-
-            freePlayer(playerToFree);
-        }
-    }
-
-    private static void freePlayer(Player player) {
-        List<ItemDisplay> chainLinks = chainedPlayers.get(player);
-        if (chainLinks != null) {
-            chainLinks.forEach(ItemDisplay::remove);
-        }
-        chainedPlayers.remove(player);
-
-        player.sendMessage("Has sido liberado!");
-    }
-    public static void onPlayerUseKey(Player player, ItemStack item) {
-        if (item != null && item.getType() == Material.TRIPWIRE_HOOK && "Key".equals(item.getItemMeta().getDisplayName())) {
-            useKey(player);
-        }
-    }
 
     public static void setChainOrigin(Player player) {
         chainOrigin = player.getLocation();
@@ -89,7 +32,7 @@ public class ChainManager {
                 chainPlayer(player);
             }
         }
-        giveKeysToPlayers();
+        // Optionally add keys to players if needed
     }
 
     private static void chainPlayer(Player player) {
@@ -112,86 +55,115 @@ public class ChainManager {
         initialChainingLocations.put(player, player.getLocation().clone());
     }
 
-
     public static void clearAllChains() {
         for (Map.Entry<Player, List<ItemDisplay>> entry : chainedPlayers.entrySet()) {
-            Player player = entry.getKey();
             List<ItemDisplay> chainLinks = entry.getValue();
-            chainLinks.forEach(ItemDisplay::remove); // Remove chain links
+            chainLinks.forEach(ItemDisplay::remove);
         }
         chainedPlayers.clear();
         initialChainingLocations.clear();
     }
 
-          public static void updateChains() {
-              if (chainOrigin == null) {
-                  return;
-              }
-
-              for (Map.Entry<Player, List<ItemDisplay>> entry : chainedPlayers.entrySet()) {
-                  Player player = entry.getKey();
-                  List<ItemDisplay> chainLinks = entry.getValue();
-
-
-                  Location playerLocation = player.getLocation().clone();
-                  playerLocation.setY(playerLocation.getY() + 1.2);
-
-
-                  double distance = chainOrigin.distance(playerLocation);
-                  Vector direction = playerLocation.toVector().subtract(chainOrigin.toVector()).normalize();
-
-
-                  if (direction.length() == 0) {
-                      direction = new Vector(0, 1, 0);
-                  }
-
-
-                  double sagFactor = calculateSagFactor(distance);
-
-                  Location previousLinkLocation = chainOrigin.clone();
-                  double totalLinks = chainLinks.size();
-
-                  for (int i = 0; i < chainLinks.size(); i++) {
-                      ItemDisplay chainLink = chainLinks.get(i);
-
-
-                      double t = i / totalLinks;
-                      Location chainLinkLocation = chainOrigin.clone().add(direction.clone().multiply(t * distance));
-
-                      double sag = Math.sin(Math.PI * t) * sagFactor; // CURVA SIN
-                      chainLinkLocation.setY(chainLinkLocation.getY() - sag);
-
-                      Vector toNextLink = chainLinkLocation.toVector().subtract(previousLinkLocation.toVector()).normalize();
-                      if (toNextLink.length() == 0) {
-                          toNextLink = new Vector(1, 0, 0);
-                      }
-                      float yaw = (float) Math.toDegrees(Math.atan2(toNextLink.getZ(), toNextLink.getX())) - 90;
-
-                      //yaw valido como numero finito
-                      if (Double.isNaN(yaw) || !Double.isFinite(yaw)) {
-                          yaw = 0;
-                      }
-
-                      chainLinkLocation.setYaw(yaw);
-
-                      chainLink.teleport(chainLinkLocation);
-
-                      previousLinkLocation = chainLinkLocation;
-                  }
-              }
-          }
-
-    private static double calculateSagFactor(double distance) {
-        double maxSag = 2.0;
-        double minSag = 0.2;
-        double sagFactor = maxSag / (distance + 1);
-        return Math.max(minSag, sagFactor);
-    }
-
     public static boolean isPlayerChained(Player player) {
         return chainedPlayers.containsKey(player);
     }
+
+    public static void clearPlayerChain(Player player) {
+        List<ItemDisplay> chainLinks = chainedPlayers.get(player);
+        if (chainLinks != null) {
+            chainLinks.forEach(ItemDisplay::remove);
+        }
+        chainedPlayers.remove(player);
+        initialChainingLocations.remove(player);
+        player.sendMessage("You have been freed from your chains!");
+    }
+
+    // Update chains to follow players
+    public static void updateChains() {
+        for (Map.Entry<Player, List<ItemDisplay>> entry : chainedPlayers.entrySet()) {
+            Player player = entry.getKey();
+            List<ItemDisplay> chainLinks = entry.getValue();
+            Location playerLocation = player.getLocation().clone();
+            playerLocation.setY(playerLocation.getY() + 1.2);
+
+            double distance = chainOrigin.distance(playerLocation);
+            Vector direction = playerLocation.toVector().subtract(chainOrigin.toVector()).normalize();
+
+            double sagFactor = calculateSagFactor(distance);
+
+            Location previousLinkLocation = chainOrigin.clone();
+            double totalLinks = chainLinks.size();
+
+            for (int i = 0; i < chainLinks.size(); i++) {
+                ItemDisplay chainLink = chainLinks.get(i);
+
+                double t = i / totalLinks;
+                Location chainLinkLocation = chainOrigin.clone().add(direction.clone().multiply(t * distance));
+
+                double sag = Math.sin(Math.PI * t) * sagFactor; // Simulate the sag with a sine wave
+                chainLinkLocation.setY(chainLinkLocation.getY() - sag);
+
+                chainLink.teleport(chainLinkLocation);
+
+                previousLinkLocation = chainLinkLocation;
+            }
+        }
+    }
+
+    // Calculate sag factor based on the distance
+    private static double calculateSagFactor(double distance) {
+        double maxSag = 2.0;  // Maximum sag in blocks
+        double minSag = 0.2;  // Minimum sag in blocks
+        double sagFactor = maxSag / (distance + 1);  // Adjusting factor
+        return Math.max(minSag, sagFactor);  // Ensure sag is not less than the minimum
+    }
+    public static void freePlayersWithoutPermission(String permission) {
+        for (Player player : chainedPlayers.keySet()) {
+            if (!player.hasPermission(permission)) {
+                clearPlayerChain(player);
+            }
+        }
+    }
     public static Location getInitialChainingLocation(Player player) {
         return initialChainingLocations.get(player);
+    }
+
+    private static final Map<UUID, Double> lastDistances = new HashMap<>();
+
+    public static Location getChainOrigin() {
+        return chainOrigin;
+    }
+    public static double getLastDistance(UUID playerUuid) {
+        return lastDistances.getOrDefault(playerUuid, -1.0);
+    }
+
+
+    public static void updateLastDistance(Player player) {
+        if (chainOrigin != null) {
+            double distance = player.getLocation().distance(chainOrigin);
+            lastDistances.put(player.getUniqueId(), distance);
+        }
+    }
+    public static boolean checkAllMovedAwayFromOrigin() {
+        for (Player player : chainedPlayers.keySet()) {
+            if (player.hasPermission("chain.desgraciados")) {
+                double currentDistance = player.getLocation().distance(chainOrigin);
+                Double lastDistance = lastDistances.get(player.getUniqueId());
+                if (lastDistance == null || currentDistance <= lastDistance) {
+                    return false; // Not all players have moved away from the origin
+                }
+            }
+        }
+        return true; // All required players have moved away from the origin
+    }
+
+    // Method to free players
+    public static void freeDesgraciados() {
+        for (Player player : chainedPlayers.keySet()) {
+            if (player.hasPermission("chain.desgraciados")) {
+                clearPlayerChain(player);
+            }
+        }
+        lastDistances.clear(); // Clear distances post-release
     }
 }
