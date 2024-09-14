@@ -37,9 +37,8 @@ public class KeyUseListener implements Listener {
                     // Free other players without 'chain.desgraciados' after 30 seconds
                     Bukkit.getScheduler().runTaskLater(plugin, () -> ChainManager.freePlayersWithoutPermission("chain.desgraciados"), 600L);  // 600 ticks = 30 seconds
 
-                    player.sendMessage("Has utilizado tu llave. Otros jugadores sin el permiso 'chain.desgraciados' serán liberados en 30 segundos.");
                 } else {
-                    player.sendMessage("No tienes los permisos necesarios para usar esta llave.");
+
                 }
         }
     }

@@ -5,12 +5,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.plugin.Plugin;
 
 public class ChainedPlayerMovementListener implements Listener {
-    private final Plugin plugin;
+    private final ChainPlugin plugin;
 
-    public ChainedPlayerMovementListener(Plugin plugin) {
+    public ChainedPlayerMovementListener(ChainPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -18,13 +17,23 @@ public class ChainedPlayerMovementListener implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
 
-        // Check if the player is currently chained
         if (ChainManager.isPlayerChained(player)) {
             Location initialLocation = ChainManager.getInitialChainingLocation(player);
-            if (initialLocation != null) {
-                Location to = event.getTo(); // The location the player is attempting to move to
-                if (to != null && initialLocation.distance(to) > 1.5) {
-                    // If the player attempts to move more than 1.5 blocks away, cancel the event
+            Location to = event.getTo();
+            Location from = event.getFrom();
+
+            if (initialLocation != null && to != null) {
+                // Check horizontal distance
+                if (initialLocation.distance(to) > 2.5) {
+                    player.teleport(initialLocation);
+                    event.setCancelled(true);
+                    return;
+                }
+
+                // Prevent jumping by checking Y difference
+                if (to.getY() > from.getY()) {
+                    to.setY(from.getY());
+                    player.teleport(to);
                     event.setCancelled(true);
                 }
             }
