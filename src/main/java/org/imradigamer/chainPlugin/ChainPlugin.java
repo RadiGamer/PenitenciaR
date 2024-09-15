@@ -28,7 +28,7 @@ public class ChainPlugin extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, ChainManager::updateChains, 0L, 1L);
         getServer().getPluginManager().registerEvents(new KeyUseListener(this), this);
         getServer().getPluginManager().registerEvents(new ChainedPlayerMovementListener(this), this);
-        getServer().getPluginManager().registerEvents(new DesgraciadosMovementListener(this), this);
+        getServer().getPluginManager().registerEvents(new DesgraciadosMovementListener(), this);
     }
 
     @Override

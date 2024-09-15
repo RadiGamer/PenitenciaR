@@ -56,6 +56,9 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
                 ChainManager.clearAllChains();
                 player.sendMessage("Adios cadenas.");
                 break;
+            case "free":
+                ChainManager.setCommandActivated(true);
+                player.sendMessage("Ahora ya pueden estirar para liberarse");
 
             case "key":
                 if (args.length > 1) {
@@ -80,7 +83,8 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
     private void giveKey(Player player) {
         ItemStack key = new ItemStack(Material.TRIPWIRE_HOOK);
         ItemMeta meta = key.getItemMeta();
-        meta.setDisplayName("Llave de Cadena");
+        meta.setCustomModelData(1);
+        meta.setDisplayName("Llave");
         key.setItemMeta(meta);
 
         player.getInventory().addItem(key);

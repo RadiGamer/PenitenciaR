@@ -8,6 +8,8 @@ import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -18,6 +20,8 @@ public class ChainManager {
     private static Location chainOrigin;
     private static final Map<Player, List<BlockDisplay>> chainedPlayers = new HashMap<>();
     private static final Map<Player, Location> initialChainingLocations = new HashMap<>();
+    private static boolean keyUsed = false;
+    private static boolean commandActivated = false;
 
     public static void setChainOrigin(Location location) {
         chainOrigin = location;
@@ -164,15 +168,19 @@ public class ChainManager {
     private static float calculatePitch(Vector direction) {
         double dy = direction.getY();
         double dx = Math.sqrt(direction.getX() * direction.getX() + direction.getZ() * direction.getZ());
-        double pitch = Math.atan2(dy, dx) * (180 / Math.PI) - 90; // Adjust for horizontal base
+        double pitch = Math.atan2(dy, dx) * (180 / Math.PI) -90; // Adjust for horizontal base
         return (float) pitch;
     }
 
     public static void freePlayersWithoutPermission(String permission) {
+        List<Player> toRemove = new ArrayList<>();
         for (Player player : chainedPlayers.keySet()) {
             if (!player.hasPermission(permission)) {
-                clearPlayerChain(player);
+                toRemove.add(player);
             }
+        }
+        for (Player player : toRemove) {
+            clearPlayerChain(player);
         }
     }
 
@@ -199,24 +207,85 @@ public class ChainManager {
 
     public static boolean checkAllMovedAwayFromOrigin() {
         for (Player player : chainedPlayers.keySet()) {
+            // Only check players with the 'chain.desgraciados' permission
             if (player.hasPermission("chain.desgraciados")) {
                 double currentDistance = player.getLocation().distance(chainOrigin);
                 Double lastDistance = lastDistances.get(player.getUniqueId());
+
+                // If this player isn't pulling away, return false
                 if (lastDistance == null || currentDistance <= lastDistance) {
-                    return false; // Not all players have moved away from the origin
+                    return false;
                 }
             }
         }
-        return true; // All required players have moved away from the origin
+        return true;  // All players are pulling away
     }
+
 
     // Method to free players
     public static void freeDesgraciados() {
+        List<Player> playersToFree = new ArrayList<>(); // Temporary list to store players to be freed
+
         for (Player player : chainedPlayers.keySet()) {
             if (player.hasPermission("chain.desgraciados")) {
-                clearPlayerChain(player);
+
+                ItemStack key = new ItemStack(Material.RAW_GOLD);
+                ItemMeta meta = key.getItemMeta();
+
+                meta.setCustomModelData(15);
+                meta.setDisplayName("");
+                key.setItemMeta(meta);
+
+                player.getInventory().addItem(key);
+
+                meta.setCustomModelData(16);
+                key.setItemMeta(meta);
+                player.getInventory().addItem(key);
+
+                playersToFree.add(player); // Add player to be freed
             }
         }
-        lastDistances.clear(); // Clear distances post-release
+
+        // Now process the removal outside of the iteration
+        for (Player player : playersToFree) {
+            clearPlayerChain(player); // Free the player
+        }
+
+        lastDistances.clear(); // Clear the last distance tracking after freeing all players
+    }
+
+    public static void setKeyUsed(boolean used) {
+        keyUsed = used;
+    }
+    public static boolean isKeyUsed() {
+        return keyUsed;
+    }
+    public static void resetKeyUsage() {
+        keyUsed = false;
+    }
+
+    public static void setCommandActivated(boolean used) {
+        commandActivated = used;
+    }
+    public static boolean isCommandActivated() {
+        return commandActivated;
+    }
+    public static void resetCommandActivated() {
+        commandActivated = false;
+    }
+
+    public static boolean checkAllMovedBackwards() {
+        for (Player player : chainedPlayers.keySet()) {
+            if (player.hasPermission("chain.desgraciados") && isCommandActivated()) {
+                Location initialLocation = initialChainingLocations.get(player);
+                double currentDistance = player.getLocation().distance(initialLocation);
+
+                // If any player has not moved more than 2.0 blocks away from their initial location, return false
+                if (currentDistance <= 2.0) {
+                    return false;
+                }
+            }
+        }
+        return true;  // All players have moved more than 2.0 blocks away from their initial location
     }
 }
