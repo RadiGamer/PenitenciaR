@@ -84,7 +84,7 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
         ItemStack key = new ItemStack(Material.TRIPWIRE_HOOK);
         ItemMeta meta = key.getItemMeta();
         meta.setCustomModelData(1);
-        meta.setDisplayName("Llave");
+        meta.setDisplayName(" ");
         key.setItemMeta(meta);
 
         player.getInventory().addItem(key);

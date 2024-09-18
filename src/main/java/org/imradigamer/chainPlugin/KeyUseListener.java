@@ -21,7 +21,7 @@ public class KeyUseListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
 
-        if (item != null && item.getType() == Material.TRIPWIRE_HOOK && item.hasItemMeta() && "Llave".equals(item.getItemMeta().getDisplayName())) {
+        if (item != null && item.getType() == Material.TRIPWIRE_HOOK && item.hasItemMeta() && item.getItemMeta().hasCustomModelData()) {
             // Remove one key from the player's inventory
 
             // Set key usage flag to true

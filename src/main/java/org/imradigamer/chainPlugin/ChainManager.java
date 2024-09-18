@@ -37,20 +37,57 @@ public class ChainManager {
             return;
         }
 
-        for (int i = 0; i < Math.min(adventurePlayers.size(), 8); i++) {
-            Player player = adventurePlayers.get(i);
-            String path = "chain.locations.location" + (i + 1);
-            if (plugin.getConfig().contains(path)) {
-                World locWorld = Bukkit.getWorld(plugin.getConfig().getString(path + ".world"));
-                double x = plugin.getConfig().getDouble(path + ".x");
-                double y = plugin.getConfig().getDouble(path + ".y");
-                double z = plugin.getConfig().getDouble(path + ".z");
-                player.teleport(new Location(locWorld, x, y, z));
-                chainPlayer(player);
-                Bukkit.getLogger().info("Teleported " + player.getName() + " to location " + (i + 1));
+        List<Player> specialPlayers = new ArrayList<>();
+        List<Player> normalPlayers = new ArrayList<>();
+
+        // Classify players by permission
+        for (Player player : adventurePlayers) {
+            if (player.hasPermission("chain.desgraciados")) {
+                specialPlayers.add(player);
             } else {
-                Bukkit.getLogger().info("Location " + (i + 1) + " not set. Player " + player.getName() + " not teleported.");
+                normalPlayers.add(player);
             }
+        }
+
+        // Determine available locations
+        int[] specialLocations = {3, 7}; // indices for location 4 and 8 (0-based index)
+
+        for (int index : specialLocations) {
+            if (specialPlayers.isEmpty()) {
+                break; // No more special players to assign
+            }
+            teleportPlayerToChainLocation(specialPlayers.remove(0), index + 1, plugin); // Teleport and remove from list
+        }
+
+        // Continue with remaining players for other spots
+        int currentLocation = 1;
+        List<Player> remainingPlayers = new ArrayList<>(specialPlayers); // Add any leftover special players
+        remainingPlayers.addAll(normalPlayers);
+
+        for (Player player : remainingPlayers) {
+            if (currentLocation == 4 || currentLocation == 8) { // Skip special locations
+                currentLocation++;
+            }
+            if (currentLocation > 8) {
+                break; // Only teleport up to 8 players
+            }
+            teleportPlayerToChainLocation(player, currentLocation, plugin);
+            currentLocation++;
+        }
+    }
+
+    private static void teleportPlayerToChainLocation(Player player, int locationNumber, ChainPlugin plugin) {
+        String path = "chain.locations.location" + locationNumber;
+        if (plugin.getConfig().contains(path)) {
+            World locWorld = Bukkit.getWorld(plugin.getConfig().getString(path + ".world"));
+            double x = plugin.getConfig().getDouble(path + ".x");
+            double y = plugin.getConfig().getDouble(path + ".y");
+            double z = plugin.getConfig().getDouble(path + ".z");
+            player.teleport(new Location(locWorld, x, y, z));
+            chainPlayer(player);
+            Bukkit.getLogger().info("Teleported " + player.getName() + " to location " + locationNumber);
+        } else {
+            Bukkit.getLogger().info("Location " + locationNumber + " not set. Player " + player.getName() + " not teleported.");
         }
     }
 
@@ -114,12 +151,7 @@ public class ChainManager {
         chainedPlayers.remove(player);
         initialChainingLocations.remove(player);
     }
-
-    private static final double CHAIN_HEIGHT_OFFSET = -0.3;  // Adjust this value to make the chain spawn higher
-    private static final double CHAIN_LEFT_OFFSET = -0.5;  // Negative value to move chain to the left (adjust as needed)
-
-
-
+    
     // Update chains to follow players
     public static void updateChains() {
 
@@ -190,13 +222,6 @@ public class ChainManager {
 
     private static final Map<UUID, Double> lastDistances = new HashMap<>();
 
-    public static Location getChainOrigin() {
-        return chainOrigin;
-    }
-
-    public static double getLastDistance(UUID playerUuid) {
-        return lastDistances.getOrDefault(playerUuid, -1.0);
-    }
 
     public static void updateLastDistance(Player player) {
         if (chainOrigin != null) {
@@ -205,26 +230,10 @@ public class ChainManager {
         }
     }
 
-    public static boolean checkAllMovedAwayFromOrigin() {
-        for (Player player : chainedPlayers.keySet()) {
-            // Only check players with the 'chain.desgraciados' permission
-            if (player.hasPermission("chain.desgraciados")) {
-                double currentDistance = player.getLocation().distance(chainOrigin);
-                Double lastDistance = lastDistances.get(player.getUniqueId());
-
-                // If this player isn't pulling away, return false
-                if (lastDistance == null || currentDistance <= lastDistance) {
-                    return false;
-                }
-            }
-        }
-        return true;  // All players are pulling away
-    }
-
-
     // Method to free players
     public static void freeDesgraciados() {
         List<Player> playersToFree = new ArrayList<>(); // Temporary list to store players to be freed
+        boolean toggle = true; // Toggle to alternate between CustomModelData values
 
         for (Player player : chainedPlayers.keySet()) {
             if (player.hasPermission("chain.desgraciados")) {
@@ -232,15 +241,19 @@ public class ChainManager {
                 ItemStack key = new ItemStack(Material.RAW_GOLD);
                 ItemMeta meta = key.getItemMeta();
 
-                meta.setCustomModelData(15);
-                meta.setDisplayName("");
+                if (toggle) {
+                    // Set for first pattern
+                    meta.setCustomModelData(15);
+                    meta.setDisplayName(" ");
+                } else {
+                    // Set for second pattern
+                    meta.setCustomModelData(16);
+                    meta.setDisplayName(" ");
+                }
                 key.setItemMeta(meta);
+                player.getInventory().addItem(key); // Add the item to the player's inventory
 
-                player.getInventory().addItem(key);
-
-                meta.setCustomModelData(16);
-                key.setItemMeta(meta);
-                player.getInventory().addItem(key);
+                toggle = !toggle; // Toggle the boolean to alternate next time
 
                 playersToFree.add(player); // Add player to be freed
             }

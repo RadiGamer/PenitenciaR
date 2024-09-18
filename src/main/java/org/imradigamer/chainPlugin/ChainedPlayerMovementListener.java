@@ -25,7 +25,7 @@ public class ChainedPlayerMovementListener implements Listener {
 
             if (initialLocation != null && to != null) {
                 // Check horizontal distance
-                if (initialLocation.distance(to) > 3.0) {
+                if (initialLocation.distance(to) > 4.0) {
                     player.teleport(initialLocation);
                     event.setCancelled(true);
                 }

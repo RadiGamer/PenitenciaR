@@ -24,7 +24,7 @@ public class DesgraciadosMovementListener implements Listener {
             double currentDistance = player.getLocation().distance(initialLocation);
 
             // We are interested in players moving more than 2.0 blocks away from their initial location
-            if (currentDistance > 2.5) {
+            if (currentDistance > 3.5) {
                 // Update the player's last known distance in case you need it
                 ChainManager.updateLastDistance(player);
 
