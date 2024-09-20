@@ -10,6 +10,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class ChainPlugin extends JavaPlugin {
 
+    private CameraShaker cameraShaker;
+
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
@@ -23,6 +25,10 @@ public class ChainPlugin extends JavaPlugin {
             ChainManager.setChainOrigin(loadedOrigin);
         }
 
+        cameraShaker = new CameraShaker(this);
+        this.getCommand("camerashake").setExecutor(new ShakeCommandExecutor(this, cameraShaker));
+        this.getCommand("elevator").setExecutor(new ElevatorCommand(this, cameraShaker));
+
         ChainManager chainManager = new ChainManager();
         getCommand("chain").setExecutor(new ChainCommand(this));
         getServer().getScheduler().runTaskTimer(this, ChainManager::updateChains, 0L, 1L);
@@ -34,6 +40,7 @@ public class ChainPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         ChainManager.clearAllChains();
+        cameraShaker.stopShaking();
     }
 }
 

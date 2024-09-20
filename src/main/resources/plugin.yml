@@ -5,5 +5,11 @@ api-version: '1.21'
 authors: [ ImRadiGamer ]
 commands:
   chain:
-    description: Commands for managing the chain
+    description: Control de las cadenas
     usage: /chain <origin|start|stop>
+  camerashake:
+    description: Activa el shake de la camara
+    usage: /<command> shake
+  elevator:
+    description: Control del elevador
+    usage: /<command> start
