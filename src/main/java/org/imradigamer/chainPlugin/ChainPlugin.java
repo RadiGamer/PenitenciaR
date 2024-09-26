@@ -2,15 +2,16 @@ package org.imradigamer.chainPlugin;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class ChainPlugin extends JavaPlugin {
 
     private CameraShaker cameraShaker;
+    private DoorAnimator doorAnimator;
+    private DoorManager doorManager;
+    public static NamespacedKey customTagKey;
 
     @Override
     public void onEnable() {
@@ -26,8 +27,12 @@ public class ChainPlugin extends JavaPlugin {
         }
 
         cameraShaker = new CameraShaker(this);
+        doorAnimator = new DoorAnimator(this);
+        doorManager = new DoorManager(this);
         this.getCommand("camerashake").setExecutor(new ShakeCommandExecutor(this, cameraShaker));
         this.getCommand("elevator").setExecutor(new ElevatorCommand(this, cameraShaker));
+        this.getCommand("glass").setExecutor(new GlassBreakCommandExecutor(this));
+        this.getCommand("doors").setExecutor(new DoorCommandExecutor(doorManager));
 
         ChainManager chainManager = new ChainManager();
         getCommand("chain").setExecutor(new ChainCommand(this));
@@ -35,6 +40,9 @@ public class ChainPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new KeyUseListener(this), this);
         getServer().getPluginManager().registerEvents(new ChainedPlayerMovementListener(this), this);
         getServer().getPluginManager().registerEvents(new DesgraciadosMovementListener(), this);
+
+        customTagKey = new NamespacedKey(this, "custom_tag");
+        getCommand("tagitems").setExecutor(new ItemTaggerCommand(this));
     }
 
     @Override

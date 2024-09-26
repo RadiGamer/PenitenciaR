@@ -1,4 +1,4 @@
-name: ChainPlugin
+name: PenitenciaR
 version: '1.0-SNAPSHOT'
 main: org.imradigamer.chainPlugin.ChainPlugin
 api-version: '1.21'
@@ -13,3 +13,12 @@ commands:
   elevator:
     description: Control del elevador
     usage: /<command> start
+  glass:
+    description: Rompe el cristal
+    usage: /glass break
+  doors:
+    description: Controla las puertas
+    usage: /doors <open|close>
+  tagitems:
+    description: test
+    usage: /tagitems
