@@ -10,7 +10,7 @@ public class ChainPlugin extends JavaPlugin {
 
     private CameraShaker cameraShaker;
     private DoorAnimator doorAnimator;
-    private DoorManager doorManager;
+    // private DoorManager doorManager;
     public static NamespacedKey customTagKey;
 
     @Override
@@ -28,11 +28,11 @@ public class ChainPlugin extends JavaPlugin {
 
         cameraShaker = new CameraShaker(this);
         doorAnimator = new DoorAnimator(this);
-        doorManager = new DoorManager(this);
+        //  doorManager = new DoorManager(this);
         this.getCommand("camerashake").setExecutor(new ShakeCommandExecutor(this, cameraShaker));
-        this.getCommand("elevator").setExecutor(new ElevatorCommand(this, cameraShaker));
+        this.getCommand("elevator").setExecutor(new ElevatorCommand(this));
         this.getCommand("glass").setExecutor(new GlassBreakCommandExecutor(this));
-        this.getCommand("doors").setExecutor(new DoorCommandExecutor(doorManager));
+        this.getCommand("doors").setExecutor(new DoorCommandExecutor(this));
 
         ChainManager chainManager = new ChainManager();
         getCommand("chain").setExecutor(new ChainCommand(this));

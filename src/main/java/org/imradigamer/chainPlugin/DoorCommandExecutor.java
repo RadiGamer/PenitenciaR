@@ -4,13 +4,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class DoorCommandExecutor implements CommandExecutor {
 
-    private final DoorManager doorManager;
+    private final JavaPlugin plugin;
 
-    public DoorCommandExecutor(DoorManager doorManager) {
-        this.doorManager = doorManager;
+    public DoorCommandExecutor(JavaPlugin plugin) {
+        this.plugin = plugin;
     }
 
     @Override
@@ -20,16 +21,36 @@ public class DoorCommandExecutor implements CommandExecutor {
             return true;
         }
 
-        if (args.length == 0) return false;
+        if (args.length != 1) {
+            sender.sendMessage("Usage: /doors <open|close>");
+            return false;
+        }
+
+        DoorAnimator animator = new DoorAnimator(plugin);
 
         if (args[0].equalsIgnoreCase("open")) {
-            doorManager.openDoors();
-            sender.sendMessage("Doors are opening...");
+            animator.animateDoors(true);  // Open doors
         } else if (args[0].equalsIgnoreCase("close")) {
-            doorManager.closeDoors();
-            sender.sendMessage("Doors are closing...");
-        } else {
-            sender.sendMessage("Unknown command.");
+            animator.animateDoors(false);  // Close doors
+        }
+
+        else if (args[0].equalsIgnoreCase("open2")) {
+            animator.animateDoors2(true);  // Close doors
+        }else if (args[0].equalsIgnoreCase("close2")) {
+            animator.animateDoors2(false);  // Close doors
+        }
+
+
+        else if (args[0].equalsIgnoreCase("open3")) {
+            animator.animateDoors3(true);  // Close doors
+        }else if (args[0].equalsIgnoreCase("close3")) {
+            animator.animateDoors3(false);  // Close doors
+        }
+
+
+        else {
+            sender.sendMessage("Usage: /doors <open|close>");
+            return false;
         }
 
         return true;
