@@ -3,6 +3,7 @@ package org.imradigamer.chainPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.block.data.type.Chain;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -11,9 +12,11 @@ import org.bukkit.inventory.ItemStack;
 
 public class KeyUseListener implements Listener {
     private final ChainPlugin plugin;
+    private ChainManager chainManager;
 
-    public KeyUseListener(ChainPlugin plugin) {
+    public KeyUseListener(ChainPlugin plugin, ChainManager chainManager) {
         this.plugin = plugin;
+        this.chainManager = chainManager;
     }
 
     @EventHandler
@@ -28,20 +31,18 @@ public class KeyUseListener implements Listener {
 
             // Check if the player has the 'chain.roleplayer' permission
             if (player.hasPermission("chain.roleplayer")) {
-                if (ChainManager.isPlayerChained(player)) {
-                    ChainManager.clearPlayerChain(player);
-                    ChainManager.setKeyUsed(true);
-                    if (item.getAmount() > 1) {
-                        item.setAmount(item.getAmount() - 1);
-                    } else {
-                        player.getInventory().remove(item);
+                if (ChainManager.isKeyActive()) {
+                    if (ChainManager.isPlayerChained(player)) {
+                        ChainManager.clearPlayerChain(player);
+                        ChainManager.setKeyUsed(true);
+                        if (item.getAmount() > 1) {
+                            item.setAmount(item.getAmount() - 1);
+                        } else {
+                            player.getInventory().remove(item);
+                        }
                     }
-                }else{
-                    player.sendMessage(ChatColor.RED + "Tu llave parece no funcionar");
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> ChainManager.freePlayersWithoutPermission("chain.desgraciados"), 300L);  // 600 ticks = 30 seconds //TODO TIEMPO DE ESTA MADREEEEEEEE
                 }
-
-                // Free other players without 'chain.desgraciados' after 30 seconds
-                Bukkit.getScheduler().runTaskLater(plugin, () -> ChainManager.freePlayersWithoutPermission("chain.desgraciados"), 300L);  // 600 ticks = 30 seconds
             }
         }
     }

@@ -173,8 +173,8 @@ public class DoorAnimator {
 
     private void animateEntity(ItemDisplay entity, Vector direction) {
         // Increase the steps and decrease the movement for smoother animation
-        int steps = 30; // Keep the number of steps
-        double moveAmount = 0.04; // Keep the small movement amount for smoothness
+        int steps = 40; // Keep the number of steps
+        double moveAmount = 0.025; // Keep the small movement amount for smoothness
 
         for (int i = 0; i < steps; i++) {
             final int step = i;

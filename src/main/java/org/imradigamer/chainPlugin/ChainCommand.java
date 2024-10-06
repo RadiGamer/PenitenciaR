@@ -54,6 +54,7 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
 
             case "stop":
                 ChainManager.clearAllChains();
+                ChainManager.resetKeyActive();
                 player.sendMessage("Adios cadenas.");
                 break;
             case "free":
@@ -76,11 +77,16 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage("Uso: /chain key <nicknames>");
                 }
                 break;
+            case "roleplayer":
+                ChainManager.setKeyActive(true);
+                Bukkit.dispatchCommand(player, "execute as @e[tag=aj.trituradora.root] run function animated_java:trituradora/animations/on/resume");
+                Bukkit.dispatchCommand(player, "timer create b6ea1 3m WHITE");
+                player.sendMessage("El roleplayer ya puede usar la llave");
         }
         return true;
     }
 
-    private void giveKey(Player player) {
+    public void giveKey(Player player) {
         ItemStack key = new ItemStack(Material.TRIPWIRE_HOOK);
         ItemMeta meta = key.getItemMeta();
         meta.setCustomModelData(1);
@@ -99,6 +105,8 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
             completions.add("start");
             completions.add("stop");
             completions.add("key");
+            completions.add("free");
+            completions.add("roleplayer");
         } else if (args.length >= 2 && "key".equals(args[0].toLowerCase())) {
             // Add player names for the 'key' command
             for (Player player : Bukkit.getOnlinePlayers()) {

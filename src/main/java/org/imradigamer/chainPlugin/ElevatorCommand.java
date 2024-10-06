@@ -53,28 +53,40 @@ public class ElevatorCommand implements CommandExecutor {
 
 
     private void executeElevatorSequence1() {
+        DoorAnimator animator = new DoorAnimator(plugin);
+        animator.animateDoors(false);
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             player.sendMessage("Puertas cerrandose");
-            DoorAnimator animator = new DoorAnimator(plugin);
-            animator.animateDoors(false);
-
+        }
             new BukkitRunnable() {
 
                 @Override
                 public void run() {
-                    player.sendMessage("Elevador andando");
+                    for (Player player : plugin.getServer().getOnlinePlayers()) {
+                        player.sendMessage("Elevador Andando");
+                    }
 
+                    Location corner1 = new Location(Bukkit.getWorld("world"), 133, 58, 8); // example coordinates
+                    Location corner2 = new Location(Bukkit.getWorld("world"), 113, 58, 3); // example coordinates
 
-                    Location corner1 = new Location(player.getWorld(), 100, 50, 100); // example coordinates
-                    Location corner2 = new Location(player.getWorld(), 110, 60, 110); // example coordinates
+                    // Schedule a flicker sequence in the middle of the "Elevador andando" phase
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            // Trigger 3 flickers (2 fast, 1 slow)
+                            triggerFlickerSequence(corner1, corner2);
+                        }
+                    }.runTaskLater(plugin, 200L); // Schedule the flicker sequence after 10 seconds (halfway)
 
                     new BukkitRunnable() {
                         @Override
                         public void run() {
-                            // Cancel the flickering task and ensure the lights end up turned on
+                            // After the elevator sequence is done, ensure the lights are fully on
                             replaceBlocksInAreaWithLight(corner1, corner2, 15); // Set light to full brightness
 
-                            player.sendMessage("Sonido Marcando el piso*");
+                            for (Player player : plugin.getServer().getOnlinePlayers()) {
+                                player.sendMessage("Sonido Marcando Piso");
+                            }
                             checkElevator1();
                             checkElevator2();
                             checkElevator3();
@@ -82,32 +94,42 @@ public class ElevatorCommand implements CommandExecutor {
                             new BukkitRunnable() {
                                 @Override
                                 public void run() {
-                                    player.sendMessage("Puertas se abren");
+                                    for (Player player : plugin.getServer().getOnlinePlayers()) {
+                                        player.sendMessage("Puertas se abren");
+                                    }
                                     animator.animateDoors2(true);
                                 }
                             }.runTaskLater(plugin, 150L); // 7.5 seconds later
                         }
-                    }.runTaskLater(plugin, 400L); // Stop flickering after 20 seconds
+                    }.runTaskLater(plugin, 400L); // End of elevator sequence after 20 seconds
                 }
             }.runTaskLater(plugin, 100L); // 5 seconds after doors close
-        }
     }
+
+//TODO CAMBIAR CADA MENSAJE A BUKKIT BROADCAST
+
     private void executeElevatorSequence2() {
+        DoorAnimator animator = new DoorAnimator(plugin);
+        animator.animateDoors2(false);
+
         for(Player player : plugin.getServer().getOnlinePlayers()) {
             player.sendMessage("Puertas cerrandose");
-            DoorAnimator animator = new DoorAnimator(plugin);
-            animator.animateDoors2(false);
+        }
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    player.sendMessage("Elevador andando");
+                    for(Player player : plugin.getServer().getOnlinePlayers()) {
+                        player.sendMessage("Elevador Andando");
+                    }
 
 
                     new BukkitRunnable() {
                         @Override
                         public void run() {
 
-                            player.sendMessage("Sonido Marcando el piso*");
+                            for(Player player : plugin.getServer().getOnlinePlayers()) {
+                                player.sendMessage("Sonido Marcando piso");
+                            }
                             checkElevator12();
                             checkElevator22();
                             checkElevator32();
@@ -115,7 +137,9 @@ public class ElevatorCommand implements CommandExecutor {
                             new BukkitRunnable() {
                                 @Override
                                 public void run() {
-                                    player.sendMessage("Puertas se abren");
+                                    for(Player player : plugin.getServer().getOnlinePlayers()) {
+                                        player.sendMessage("Puertas se abren");
+                                    }
                                     animator.animateDoors3(true);
                                 }
                             }.runTaskLater(plugin, 150L); // 7.5 seconds later
@@ -123,7 +147,6 @@ public class ElevatorCommand implements CommandExecutor {
                     }.runTaskLater(plugin, 400L); // 20 segundos seconds later
                 }
             }.runTaskLater(plugin, 100L); // 5 seconds after doors close
-        }
     }
 
 
@@ -209,6 +232,7 @@ public class ElevatorCommand implements CommandExecutor {
             }
         }
     }
+
     private void replaceBlocksInAreaWithLight(Location corner1, Location corner2, int lightLevel) {
         World world = corner1.getWorld();
         int minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
@@ -231,6 +255,61 @@ public class ElevatorCommand implements CommandExecutor {
                 }
             }
         }
+    }
+    private void triggerFlickerSequence(Location corner1, Location corner2) {
+        // First fast flicker
+        triggerSingleFlicker(corner1, corner2, 5, 10); // Flicker with random light level between 5 and 10
+
+        // Schedule the second fast flicker
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                triggerSingleFlicker(corner1, corner2, 5, 10);
+            }
+        }.runTaskLater(plugin, 5L); // 5 ticks (0.25 seconds) delay
+
+        // Schedule the third slow flicker
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                triggerSingleFlicker(corner1, corner2, 5, 10);
+            }
+        }.runTaskLater(plugin, 15L); // 15 ticks (0.75 seconds) delay from the start
+    }
+
+    // Method to trigger a single flicker (down and back up)
+    private void triggerSingleFlicker(Location corner1, Location corner2, int minLight, int maxLight) {
+        Random random = new Random();
+        World world = corner1.getWorld();
+        int minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
+        int minY = Math.min(corner1.getBlockY(), corner2.getBlockY());
+        int minZ = Math.min(corner1.getBlockZ(), corner2.getBlockZ());
+        int maxX = Math.max(corner1.getBlockX(), corner2.getBlockX());
+        int maxY = Math.max(corner1.getBlockY(), corner2.getBlockY());
+        int maxZ = Math.max(corner1.getBlockZ(), corner2.getBlockZ());
+
+        // Reduce the light level momentarily (like a voltage drop)
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    if (block.getType() == Material.LIGHT) {
+                        // Set light to a random low value between minLight and maxLight
+                        int randomLightLevel = minLight + random.nextInt(maxLight - minLight + 1); // Random between minLight and maxLight
+                        BlockData blockData = Bukkit.createBlockData(Material.LIGHT, "[level=" + randomLightLevel + "]");
+                        block.setBlockData(blockData);
+                    }
+                }
+            }
+        }
+
+        // Restore the light level to full brightness after a short delay (depending on flicker speed)
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                replaceBlocksInAreaWithLight(corner1, corner2, 15); // Restore light to full brightness
+            }
+        }.runTaskLater(plugin, 5L); // 5 ticks = 0.25 seconds delay
     }
 
 }

@@ -33,6 +33,7 @@ public class DesgraciadosMovementListener implements Listener {
                     ChainManager.freeDesgraciados();
                     ChainManager.resetKeyUsage();
                     ChainManager.resetCommandActivated();// Reset the key usage flag
+                    ChainManager.resetKeyActive();
                 }
             }
         }

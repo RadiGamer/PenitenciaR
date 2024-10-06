@@ -1,10 +1,6 @@
 package org.imradigamer.chainPlugin;
 
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
@@ -22,6 +18,7 @@ public class ChainManager {
     private static final Map<Player, Location> initialChainingLocations = new HashMap<>();
     private static boolean keyUsed = false;
     private static boolean commandActivated = false;
+    private static boolean keyActive = false;
 
     public static void setChainOrigin(Location location) {
         chainOrigin = location;
@@ -33,7 +30,7 @@ public class ChainManager {
                 .collect(Collectors.toList());
 
         if (adventurePlayers.isEmpty()) {
-            Bukkit.getLogger().info("No adventure mode players to teleport.");
+            Bukkit.getLogger().info("No se detectaron jugadores en modo aventura");
             return;
         }
 
@@ -44,8 +41,13 @@ public class ChainManager {
         for (Player player : adventurePlayers) {
             if (player.hasPermission("chain.desgraciados")) {
                 specialPlayers.add(player);
+                //todo EQUIPAR CALABAZA AQUI
+                equipHeadBand(player);
             } else {
                 normalPlayers.add(player);
+                //TODO AQUI VA LA LLAVE
+                ChainCommand chainCommand = new ChainCommand(plugin);
+                chainCommand.giveKey(player);
             }
         }
 
@@ -235,7 +237,11 @@ public class ChainManager {
         List<Player> playersToFree = new ArrayList<>(); // Temporary list to store players to be freed
         boolean toggle = true; // Toggle to alternate between CustomModelData values
 
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "execute as @e[tag=aj.trituradora.root] run function animated_java:trituradora/animations/on/pause");
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "timer delete b6ea1");
+
         for (Player player : chainedPlayers.keySet()) {
+            removeHeadBand(player);
             if (player.hasPermission("chain.desgraciados")) {
 
                 ItemStack key = new ItemStack(Material.RAW_GOLD);
@@ -301,4 +307,33 @@ public class ChainManager {
         }
         return true;  // All players have moved more than 2.0 blocks away from their initial location
     }
+    public static void equipHeadBand(Player player) {
+        ItemStack pumpkin = new ItemStack(Material.CARVED_PUMPKIN, 1);
+        ItemMeta meta = pumpkin.getItemMeta();
+        if (meta != null) {
+            meta.setCustomModelData(1);
+            meta.setDisplayName(ChatColor.GRAY + "Venda");
+            pumpkin.setItemMeta(meta);
+            player.getInventory().setHelmet(pumpkin);
+        }
+    }
+
+    public static void removeHeadBand(Player player) {
+        ItemStack headItem = player.getInventory().getHelmet();
+        if (headItem != null && headItem.getType() == Material.CARVED_PUMPKIN) {
+            ItemMeta meta = headItem.getItemMeta();
+            if (meta != null && meta.hasCustomModelData() && meta.getCustomModelData() == 1) {
+                player.getInventory().setHelmet(null);
+            }
+        }
+    }
+
+    public static boolean isKeyActive() {
+        return keyActive;
+    }
+
+    public static void setKeyActive(boolean keyActive) {
+        ChainManager.keyActive = keyActive;
+    }
+    public static void resetKeyActive() {keyActive = false;}
 }
