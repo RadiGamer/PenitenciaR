@@ -1,4 +1,4 @@
-package org.imradigamer.chainPlugin;
+package org.imradigamer.chainPlugin.Elevator;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -16,13 +16,9 @@ public class DoorCommandExecutor implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("Only players can use this command.");
-            return true;
-        }
 
         if (args.length != 1) {
-            sender.sendMessage("Usage: /doors <open|close>");
+            sender.sendMessage("Uso: /doors <open|close>");
             return false;
         }
 

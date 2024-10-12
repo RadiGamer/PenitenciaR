@@ -22,3 +22,9 @@ commands:
   tagitems:
     description: test
     usage: /tagitems
+  startblink:
+    description: Starts the shader loop.
+    usage: /startblink
+  stopblink:
+    description: Stops the shader loop.
+    usage: /stopblink

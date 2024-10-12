@@ -1,4 +1,4 @@
-package org.imradigamer.chainPlugin;
+package org.imradigamer.chainPlugin.Elevator;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -9,6 +9,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
+import org.imradigamer.chainPlugin.Utils.EntityUtils;
 
 public class DoorAnimator {
 
@@ -19,7 +20,6 @@ public class DoorAnimator {
     }
 
     public void animateDoors(boolean open) {
-        // Define the bounds
         Location minBoundLat = new Location(plugin.getServer().getWorld("world"), 111, 52, 0);
         Location maxBoundLat = new Location(plugin.getServer().getWorld("world"), 136, 60, 4);
 
@@ -44,21 +44,16 @@ public class DoorAnimator {
             placeBarrier(plugin.getServer().getWorld("world"), cornerElevator3_1, cornerElevator3_2);
         }
 
-
-        // Loop through all entities in the specified bounds
         for (Entity entity : minBoundLat.getWorld().getEntities()) {
             if (entity instanceof ItemDisplay) {
                 ItemDisplay itemDisplayEntity = (ItemDisplay) entity;
 
-                // Check if entity is within bounds and has custom model data 57 or 58
                 if (isEntityInBounds(itemDisplayEntity, minBoundLat, maxBoundLat)) {
                     int customModelData = EntityUtils.getCustomModelData(itemDisplayEntity);
 
                     if (customModelData == 57) {
-                        // Move right if opening, left if closing
                         animateEntity(itemDisplayEntity, open ? new Vector(-2, 0, 0) : new Vector(2, 0, 0));
                     } else if (customModelData == 58) {
-                        // Move left if opening, right if closing
                         animateEntity(itemDisplayEntity, open ? new Vector(2, 0, 0) : new Vector(-2, 0, 0));
                     } else if (customModelData == 53) {
                         animateEntity(itemDisplayEntity, open ? new Vector(-2, 0, 0) : new Vector(2, 0, 0));
@@ -118,7 +113,6 @@ public class DoorAnimator {
         }
     }
     public void animateDoors3(boolean open) {
-        // Define the bounds
         Location minBoundLat = new Location(plugin.getServer().getWorld("world"), 111, 104, 0);
         Location maxBoundLat = new Location(plugin.getServer().getWorld("world"), 136, 111, 4);
 
@@ -172,16 +166,15 @@ public class DoorAnimator {
     }
 
     private void animateEntity(ItemDisplay entity, Vector direction) {
-        // Increase the steps and decrease the movement for smoother animation
-        int steps = 40; // Keep the number of steps
-        double moveAmount = 0.025; // Keep the small movement amount for smoothness
+        int steps = 40;
+        double moveAmount = 0.025;
 
         for (int i = 0; i < steps; i++) {
             final int step = i;
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 Location currentLocation = entity.getLocation();
                 entity.teleport(currentLocation.add(direction.clone().multiply(moveAmount)));
-            }, step * 1L); // Reduce delay to speed up by 50%
+            }, step * 1L);
         }
     }
     public void placeBarrier(World world, Location corner1, Location corner2) {

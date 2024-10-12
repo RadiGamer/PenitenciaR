@@ -1,4 +1,4 @@
-package org.imradigamer.chainPlugin;
+package org.imradigamer.chainPlugin.Chains;
 
 import org.bukkit.*;
 import org.bukkit.block.data.BlockData;
@@ -6,7 +6,10 @@ import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import org.imradigamer.chainPlugin.ChainPlugin;
+
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,6 +22,13 @@ public class ChainManager {
     private static boolean keyUsed = false;
     private static boolean commandActivated = false;
     private static boolean keyActive = false;
+    private final ChainPlugin plugin;
+    private boolean isTaskRunning = false;
+    private BukkitRunnable repeatingTask;
+
+    public ChainManager(ChainPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     public static void setChainOrigin(Location location) {
         chainOrigin = location;
@@ -51,27 +61,25 @@ public class ChainManager {
             }
         }
 
-        // Determine available locations
-        int[] specialLocations = {3, 7}; // indices for location 4 and 8 (0-based index)
+        int[] specialLocations = {3, 7};
 
         for (int index : specialLocations) {
             if (specialPlayers.isEmpty()) {
-                break; // No more special players to assign
+                break;
             }
-            teleportPlayerToChainLocation(specialPlayers.remove(0), index + 1, plugin); // Teleport and remove from list
+            teleportPlayerToChainLocation(specialPlayers.remove(0), index + 1, plugin);
         }
 
-        // Continue with remaining players for other spots
         int currentLocation = 1;
-        List<Player> remainingPlayers = new ArrayList<>(specialPlayers); // Add any leftover special players
+        List<Player> remainingPlayers = new ArrayList<>(specialPlayers);
         remainingPlayers.addAll(normalPlayers);
 
         for (Player player : remainingPlayers) {
-            if (currentLocation == 4 || currentLocation == 8) { // Skip special locations
+            if (currentLocation == 4 || currentLocation == 8) {
                 currentLocation++;
             }
             if (currentLocation > 8) {
-                break; // Only teleport up to 8 players
+                break;
             }
             teleportPlayerToChainLocation(player, currentLocation, plugin);
             currentLocation++;
@@ -95,24 +103,22 @@ public class ChainManager {
 
     private static void chainPlayer(Player player) {
         List<BlockDisplay> chainLinks = chainedPlayers.getOrDefault(player, new ArrayList<>());
-        chainLinks.forEach(BlockDisplay::remove); // Remove old chain links first
+        chainLinks.forEach(BlockDisplay::remove);
         chainLinks.clear();
 
         Location playerLocation = player.getLocation().clone();
         double distance = chainOrigin.distance(playerLocation);
         Vector direction = playerLocation.toVector().subtract(chainOrigin.toVector()).normalize();
 
-        // Adjust interval dynamically based on distance
-        double interval = Math.max(0.3, distance / 10);  // Ensures no more than 10 links, adjust as necessary
+
+        double interval = Math.max(0.3, distance / 10);
 
         int numberOfLinks = (int) (distance / interval);
 
         for (int i = 0; i <= numberOfLinks; i++) {
             Location chainLinkLocation = chainOrigin.clone().add(direction.clone().multiply(i * interval));
-            // Adjust the yaw of each link to align with the direction vector
             float yaw = calculateYaw(direction);
             chainLinkLocation.setYaw(yaw);
-            // Spawning the BlockDisplay as before
             BlockDisplay chainLink = player.getWorld().spawn(chainLinkLocation, BlockDisplay.class);
             BlockData chainBlockData = Material.CHAIN.createBlockData();
             chainLink.setBlock(chainBlockData);
@@ -127,7 +133,7 @@ public class ChainManager {
     private static float calculateYaw(Vector direction) {
         double dx = direction.getX();
         double dz = direction.getZ();
-        double yaw = Math.atan2(-dx, dz) * (180 / Math.PI);  // Convert radians to degrees
+        double yaw = Math.atan2(-dx, dz) * (180 / Math.PI);
         return (float) yaw;
     }
 
@@ -164,21 +170,19 @@ public class ChainManager {
             double distance = chainOrigin.distance(playerLocation);
             Vector direction = playerLocation.toVector().subtract(chainOrigin.toVector()).normalize();
 
-            Vector up = new Vector(0, 1, 0); // Upward direction
+            Vector up = new Vector(0, 1, 0);
             Vector left = up.crossProduct(direction).normalize().multiply(-0.5);
 
-            double interval = 0.5;  // Fixed interval for chain links
-            int numberOfRequiredLinks = (int) Math.ceil(distance / interval) + 1;  // Use ceil to ensure we reach the player
+            double interval = 0.5;
+            int numberOfRequiredLinks = (int) Math.ceil(distance / interval) + 1;
 
-            // Adjust the list size based on the distance
             if (chainLinks.size() > numberOfRequiredLinks) {
-                // Remove extra links
+
                 for (int i = chainLinks.size() - 1; i >= numberOfRequiredLinks; i--) {
                     chainLinks.get(i).remove();
                     chainLinks.remove(i);
                 }
             } else if (chainLinks.size() < numberOfRequiredLinks) {
-                // Add missing links
                 for (int i = chainLinks.size(); i < numberOfRequiredLinks; i++) {
                     Location chainLinkLocation = chainOrigin.clone().add(direction.clone().multiply(i * interval));
                     BlockDisplay chainLink = player.getWorld().spawn(chainLinkLocation, BlockDisplay.class);
@@ -189,7 +193,6 @@ public class ChainManager {
                 }
             }
 
-            // Update the position and orientation of each chain link
             for (int i = 0; i < chainLinks.size(); i++) {
                 Location chainLinkLocation = chainOrigin.clone().add(direction.clone().multiply(i * interval)).add(left);
                 chainLinkLocation.setYaw(calculateYaw(direction));
@@ -202,7 +205,7 @@ public class ChainManager {
     private static float calculatePitch(Vector direction) {
         double dy = direction.getY();
         double dx = Math.sqrt(direction.getX() * direction.getX() + direction.getZ() * direction.getZ());
-        double pitch = Math.atan2(dy, dx) * (180 / Math.PI) -90; // Adjust for horizontal base
+        double pitch = Math.atan2(dy, dx) * (180 / Math.PI) -90;
         return (float) pitch;
     }
 
@@ -234,11 +237,14 @@ public class ChainManager {
 
     // Method to free players
     public static void freeDesgraciados() {
-        List<Player> playersToFree = new ArrayList<>(); // Temporary list to store players to be freed
-        boolean toggle = true; // Toggle to alternate between CustomModelData values
+        List<Player> playersToFree = new ArrayList<>();
+        boolean toggle = true;
 
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopblink");
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "execute as @e[tag=aj.trituradora.root] run function animated_java:trituradora/animations/on/pause");
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "timer delete b6ea1");
+
+        // Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "timer delete b6ea1");
+        Bukkit.broadcastMessage(ChatColor.GRAY+"timer delete b6ea1");
 
         for (Player player : chainedPlayers.keySet()) {
             removeHeadBand(player);
@@ -248,29 +254,26 @@ public class ChainManager {
                 ItemMeta meta = key.getItemMeta();
 
                 if (toggle) {
-                    // Set for first pattern
                     meta.setCustomModelData(15);
                     meta.setDisplayName(" ");
                 } else {
-                    // Set for second pattern
                     meta.setCustomModelData(16);
                     meta.setDisplayName(" ");
                 }
                 key.setItemMeta(meta);
-                player.getInventory().addItem(key); // Add the item to the player's inventory
+                player.getInventory().addItem(key);
 
-                toggle = !toggle; // Toggle the boolean to alternate next time
+                toggle = !toggle;
 
-                playersToFree.add(player); // Add player to be freed
+                playersToFree.add(player);
             }
         }
 
-        // Now process the removal outside of the iteration
         for (Player player : playersToFree) {
-            clearPlayerChain(player); // Free the player
+            clearPlayerChain(player);
         }
 
-        lastDistances.clear(); // Clear the last distance tracking after freeing all players
+        lastDistances.clear();
     }
 
     public static void setKeyUsed(boolean used) {
@@ -336,4 +339,5 @@ public class ChainManager {
         ChainManager.keyActive = keyActive;
     }
     public static void resetKeyActive() {keyActive = false;}
+
 }

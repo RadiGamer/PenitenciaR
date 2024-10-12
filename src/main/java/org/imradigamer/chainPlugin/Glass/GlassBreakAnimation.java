@@ -1,4 +1,4 @@
-package org.imradigamer.chainPlugin;
+package org.imradigamer.chainPlugin.Glass;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -9,6 +9,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.imradigamer.chainPlugin.ChainPlugin;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,7 +37,6 @@ public class GlassBreakAnimation {
         int minZ = Math.min(start.getBlockZ(), end.getBlockZ());
         int maxZ = Math.max(start.getBlockZ(), end.getBlockZ());
 
-        // Mensaje de depuración: Muestra el rango de coordenadas que se está revisando
         Bukkit.getLogger().info("Revisando paneles de cristal entre: (" + minX + ", " + minY + ", " + minZ + ") y (" + maxX + ", " + maxY + ", " + maxZ + ")");
 
         for (int x = minX; x <= maxX; x++) {
@@ -48,7 +48,6 @@ public class GlassBreakAnimation {
             }
         }
 
-        // Otro mensaje de depuración si no se encontraron paneles de cristal
         if (glassBlocks.isEmpty()) {
             Bukkit.getLogger().info("No se encontraron paneles de cristal en el rango seleccionado.");
         }

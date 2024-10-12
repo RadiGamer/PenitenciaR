@@ -1,4 +1,4 @@
-package org.imradigamer.chainPlugin;
+package org.imradigamer.chainPlugin.Listeners;
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import org.bukkit.Location;
@@ -11,6 +11,8 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.imradigamer.chainPlugin.ChainPlugin;
+import org.imradigamer.chainPlugin.Chains.ChainManager;
 
 public class ChainedPlayerMovementListener implements Listener {
     private final ChainPlugin plugin;

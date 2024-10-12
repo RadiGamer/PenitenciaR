@@ -1,4 +1,4 @@
-package org.imradigamer.chainPlugin;
+package org.imradigamer.chainPlugin.Chains;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -9,7 +9,8 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.Plugin;
+import org.imradigamer.chainPlugin.ChainPlugin;
+
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,10 +19,12 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
 
+
 public class ChainCommand implements CommandExecutor, TabCompleter {
 
     private final ChainPlugin plugin;
     private static final Map<UUID, Long> cooldowns = new HashMap<>();
+
 
     public ChainCommand(ChainPlugin plugin) {
         this.plugin = plugin;
@@ -34,7 +37,6 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase()) {
             case "origin":
                 ChainManager.setChainOrigin(player.getLocation());
-                // Save the location to config immediately after setting
                 plugin.getConfig().set("chain.origin.world", player.getWorld().getName());
                 plugin.getConfig().set("chain.origin.x", player.getLocation().getX());
                 plugin.getConfig().set("chain.origin.y", player.getLocation().getY());
@@ -81,6 +83,7 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
                 ChainManager.setKeyActive(true);
                 Bukkit.dispatchCommand(player, "execute as @e[tag=aj.trituradora.root] run function animated_java:trituradora/animations/on/resume");
                 Bukkit.dispatchCommand(player, "timer create b6ea1 3m WHITE");
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopblink");
                 player.sendMessage("El roleplayer ya puede usar la llave");
         }
         return true;
@@ -100,7 +103,6 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            // First argument completions
             completions.add("origin");
             completions.add("start");
             completions.add("stop");
@@ -108,7 +110,6 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
             completions.add("free");
             completions.add("roleplayer");
         } else if (args.length >= 2 && "key".equals(args[0].toLowerCase())) {
-            // Add player names for the 'key' command
             for (Player player : Bukkit.getOnlinePlayers()) {
                 completions.add(player.getName());
             }
@@ -116,16 +117,15 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
         return completions;
     }
     private void saveLocation(Player player) {
-        // Get the current location count from config and increment
         int locationCount = plugin.getConfig().getInt("chain.locationCount", 0);
-        int nextLocationIndex = (locationCount % 8) + 1;  // Ensure it cycles between 1 and 8
+        int nextLocationIndex = (locationCount % 8) + 1;
 
         String basePath = "chain.locations.location" + nextLocationIndex;
         plugin.getConfig().set(basePath + ".world", player.getWorld().getName());
         plugin.getConfig().set(basePath + ".x", player.getLocation().getX());
         plugin.getConfig().set(basePath + ".y", player.getLocation().getY());
         plugin.getConfig().set(basePath + ".z", player.getLocation().getZ());
-        plugin.getConfig().set("chain.locationCount", nextLocationIndex);  // Save the new index
+        plugin.getConfig().set("chain.locationCount", nextLocationIndex);
 
         plugin.saveConfig();
         player.sendMessage("Location " + nextLocationIndex + " saved.");

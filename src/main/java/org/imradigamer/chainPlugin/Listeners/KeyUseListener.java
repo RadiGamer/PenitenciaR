@@ -1,14 +1,14 @@
-package org.imradigamer.chainPlugin;
+package org.imradigamer.chainPlugin.Listeners;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.block.data.type.Chain;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.imradigamer.chainPlugin.ChainPlugin;
+import org.imradigamer.chainPlugin.Chains.ChainManager;
 
 public class KeyUseListener implements Listener {
     private final ChainPlugin plugin;
@@ -25,11 +25,7 @@ public class KeyUseListener implements Listener {
         ItemStack item = event.getItem();
 
         if (item != null && item.getType() == Material.TRIPWIRE_HOOK && item.hasItemMeta() && item.getItemMeta().hasCustomModelData()) {
-            // Remove one key from the player's inventory
 
-            // Set key usage flag to true
-
-            // Check if the player has the 'chain.roleplayer' permission
             if (player.hasPermission("chain.roleplayer")) {
                 if (ChainManager.isKeyActive()) {
                     if (ChainManager.isPlayerChained(player)) {

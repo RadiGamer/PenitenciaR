@@ -1,4 +1,4 @@
-package org.imradigamer.chainPlugin;
+package org.imradigamer.chainPlugin.Glass;
 
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -6,6 +6,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.imradigamer.chainPlugin.ChainPlugin;
 
 public class GlassBreakCommandExecutor implements CommandExecutor {
 
