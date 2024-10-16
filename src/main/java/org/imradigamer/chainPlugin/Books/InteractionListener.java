@@ -1,5 +1,6 @@
 package org.imradigamer.chainPlugin.Books;
 
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Interaction;
@@ -14,12 +15,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class InteractionListener implements Listener {
 
+    private final Map<UUID, BookData> estanteBooks = new HashMap<>();
     private static final long COOLDOWN_TIME = 5000;
     private final HashMap<UUID, Long> cooldowns = new HashMap<>();
+
     @EventHandler
     public void onPlayerInteract(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
@@ -27,64 +31,82 @@ public class InteractionListener implements Listener {
         if (event.getRightClicked() instanceof Interaction) {
             Interaction interaction = (Interaction) event.getRightClicked();
 
-            if (interaction.getScoreboardTags().contains("libro_1")) {
-                ItemGiver.givePlayerItem(player, "Libro 1", 26);
-                removeNearbyDisplay(player, Material.LEATHER, 26);
-                interaction.remove();
-            } else if (interaction.getScoreboardTags().contains("libro_2")) {
-                ItemGiver.givePlayerItem(player, "Libro 2", 43);
-                removeNearbyDisplay(player, Material.LEATHER, 43);
-                interaction.remove();
-            } else if (interaction.getScoreboardTags().contains("libro_3")) {
-                ItemGiver.givePlayerItem(player, "Libro 3", 27);
-                removeNearbyDisplay(player, Material.LEATHER, 27);
-                interaction.remove();
-            } else if (interaction.getScoreboardTags().contains("libro_4")) {
-                ItemGiver.givePlayerItem(player, "Libro 4", 28);
-                removeNearbyDisplay(player, Material.LEATHER, 28);
-                interaction.remove();
-            } else if (interaction.getScoreboardTags().contains("libro_5")) {
-                ItemGiver.givePlayerItem(player, "Libro 5", 29);
-                removeNearbyDisplay(player, Material.LEATHER, 29);
-                interaction.remove();
-            } else if (interaction.getScoreboardTags().contains("libro_6")) {
-                ItemGiver.givePlayerItem(player, "Libro 6", 30);
-                removeNearbyDisplay(player, Material.LEATHER, 30);
-                interaction.remove();
-            }else if (interaction.getScoreboardTags().contains("libro_7")) {
-                ItemGiver.givePlayerItem(player, "Libro 7", 36);
-                removeNearbyDisplay(player, Material.LEATHER, 36);
-                interaction.remove();
-            } else if (interaction.getScoreboardTags().contains("libro_8")) {
-                ItemGiver.givePlayerItem(player, "Libro 8", 31);
-                removeNearbyDisplay(player, Material.LEATHER, 31);
-                interaction.remove();
-            } else if (interaction.getScoreboardTags().contains("libro_9")) {
-                ItemGiver.givePlayerItem(player, "Libro 9", 32);
-                removeNearbyDisplay(player, Material.LEATHER, 32);
-                interaction.remove();
-            } else if (interaction.getScoreboardTags().contains("libro_10")) {
-                ItemGiver.givePlayerItem(player, "Libro 10", 33);
-                removeNearbyDisplay(player, Material.LEATHER, 33);
-                interaction.remove();
+            for (int i = 1; i <= 10; i++) {
+                String libroTag = "libro_" + i;
+                String visualLibroTag = "visual_libro_" + i;
+
+                if (interaction.getScoreboardTags().contains(libroTag)) {
+                    giveBookToPlayer(player, i);
+
+                    updateVisualBook(interaction, visualLibroTag, i);
+
+                    interaction.remove();
+
+                    return;
+                }
+            }
+
+            for (int i = 1; i <= 10; i++) {
+                String estanteTag = "estante_" + i;
+                if (interaction.getScoreboardTags().contains(estanteTag)) {
+                    handleEstanteInteraction(player, interaction, estanteTag);
+                    return;
+                }
             }
         }
     }
-    private void removeNearbyDisplay(Player player, Material material, int customModelData) {
-        player.getNearbyEntities(3, 3, 3).stream()
+    private void giveBookToPlayer(Player player, int libroNumber) {
+        ItemStack book = new ItemStack(Material.LEATHER);
+        ItemMeta meta = book.getItemMeta();
+        if (meta != null) {
+            meta.setCustomModelData(getCustomModelDataForLibro(libroNumber));
+            meta.setDisplayName(" ");
+            book.setItemMeta(meta);
+
+        }
+
+        player.getInventory().addItem(book);
+        player.sendMessage("Has recibido el libro " + libroNumber);
+    }
+
+    private int getCustomModelDataForLibro(int libroNumber) {
+        switch (libroNumber) {
+            case 1:
+                return 26;
+            case 2:
+                return 43;
+            case 3:
+                return 27;
+            case 4:
+                return 28;
+            case 5:
+                return 29;
+            case 6:
+                return 30;
+            case 7:
+                return 36;
+            case 8:
+                return 31;
+            case 9:
+                return 32;
+            case 10:
+                return 33;
+            default:
+                return 0;
+        }
+    }
+    private void updateVisualBook(Interaction interaction, String visualLibroTag, int libroNumber) {
+        interaction.getNearbyEntities(5, 5, 5).stream()
                 .filter(entity -> entity instanceof ItemDisplay)
                 .map(entity -> (ItemDisplay) entity)
+                .filter(itemDisplay -> itemDisplay.getScoreboardTags().contains(visualLibroTag))
                 .forEach(itemDisplay -> {
-                    ItemStack displayedItem = itemDisplay.getItemStack();
+                    itemDisplay.setItemStack(new ItemStack(Material.AIR));
 
-                    if (displayedItem.getType() == material) {
-                        ItemMeta meta = displayedItem.getItemMeta();
-                        if (meta != null && meta.hasCustomModelData() && meta.getCustomModelData() == customModelData) {
-                            itemDisplay.remove();
-                        }
-                    }
+                    Bukkit.getLogger().info("Removed visual book for " + visualLibroTag);
                 });
     }
+
     @EventHandler
     public void onPlayerRightClick(PlayerInteractEvent event) {
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
@@ -95,10 +117,6 @@ public class InteractionListener implements Listener {
                 ItemMeta meta = itemInHand.getItemMeta();
                 if (meta != null && meta.hasCustomModelData()) {
                     int customModelData = meta.getCustomModelData();
-
-                    if (isInCooldown(player)) {
-                        return;
-                    }
 
                     switch (customModelData) {
                         case 26:
@@ -118,6 +136,9 @@ public class InteractionListener implements Listener {
                             break;
                         case 30:
                             broadcastLibroMessage(6);
+                            break;
+                        case 36:
+                            broadcastLibroMessage(7);
                             break;
                         case 31:
                             broadcastLibroMessage(8);
@@ -141,21 +162,163 @@ public class InteractionListener implements Listener {
         Bukkit.broadcastMessage("Aquí se interactuó con el libro " + libroNumber);
     }
 
+    private void handleEstanteInteraction(Player player, Interaction interaction, String estanteTag) {
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
+        UUID interactionUUID = interaction.getUniqueId();
+
+        if (itemInHand == null || itemInHand.getType() == Material.AIR) {
+            if (estanteBooks.containsKey(interactionUUID)) {
+                BookData savedBook = estanteBooks.get(interactionUUID);
+
+                ItemStack returnedBook = new ItemStack(Material.LEATHER);
+                ItemMeta meta = returnedBook.getItemMeta();
+                meta.setDisplayName(" ");
+                meta.setCustomModelData(savedBook.getCustomModelData());
+                returnedBook.setItemMeta(meta);
+
+                player.getInventory().addItem(returnedBook);
+                Bukkit.getLogger().info("Se sacó el libro de " + estanteTag);
+
+                estanteBooks.remove(interactionUUID);
+
+                updateVisualEstante(estanteTag, null);
+
+            } else {
+                player.sendMessage(ChatColor.of("#850129") + "El estante parece estar vacío...");
+            }
+        } else if (itemInHand.getType() == Material.LEATHER) {
+            ItemMeta meta = itemInHand.getItemMeta();
+            if (meta != null && meta.hasCustomModelData()) {
+                int customModelData = meta.getCustomModelData();
+
+                if (estanteBooks.containsKey(interactionUUID)) {
+                    player.sendMessage(ChatColor.of("#850129") + "Este estante ya tiene un libro guardado.");
+                    return;
+                }
+
+                for (int i = 1; i <= 10; i++) {
+                    if (matchesLibro(customModelData, i)) {
+                        estanteBooks.put(interactionUUID, new BookData(customModelData));
+
+                        player.getInventory().getItemInMainHand().setAmount(0);
+
+                        Bukkit.getLogger().info("Se guardó un libro en " + estanteTag);
+
+                        ItemStack displayBook = new ItemStack(Material.LEATHER);
+                        ItemMeta displayMeta = displayBook.getItemMeta();
+                        displayMeta.setCustomModelData(customModelData);
+                        displayBook.setItemMeta(displayMeta);
+
+                        updateVisualEstante(estanteTag, displayBook);
+
+                        checkForCompletion();
+
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    private void updateVisualEstante(String estanteTag, ItemStack item) {
+        String visualTag = "visual_" + estanteTag;
+
+        Bukkit.getWorlds().forEach(world -> {
+            world.getEntities().stream()
+                    .filter(entity -> entity instanceof ItemDisplay)
+                    .map(entity -> (ItemDisplay) entity)
+                    .filter(itemDisplay -> itemDisplay.getScoreboardTags().contains(visualTag))
+                    .forEach(itemDisplay -> {
+                        if (item == null) {
+                            itemDisplay.setItemStack(new ItemStack(Material.AIR));
+                        } else {
+                            itemDisplay.setItemStack(item);
+                        }
+                    });
+        });
+    }
+
+    private void checkForCompletion() {
+        for (int i = 1; i <= 10; i++) {
+            int expectedCustomModelData;
+
+            switch (i) {
+                case 1:
+                    expectedCustomModelData = 26;
+                    break;
+                case 2:
+                    expectedCustomModelData = 43;
+                    break;
+                case 3:
+                    expectedCustomModelData = 27;
+                    break;
+                case 4:
+                    expectedCustomModelData = 28;
+                    break;
+                case 5:
+                    expectedCustomModelData = 29;
+                    break;
+                case 6:
+                    expectedCustomModelData = 30;
+                    break;
+                case 7:
+                    expectedCustomModelData = 36;
+                    break;
+                case 8:
+                    expectedCustomModelData = 31;
+                    break;
+                case 9:
+                    expectedCustomModelData = 32;
+                    break;
+                case 10:
+                    expectedCustomModelData = 33;
+                    break;
+                default:
+                    return;
+            }
+
+            boolean hasBook = estanteBooks.values().stream()
+                    .anyMatch(book -> book.getCustomModelData() == expectedCustomModelData);
+
+            if (!hasBook) {
+                return;
+            }
+        }
+        Bukkit.broadcastMessage(ChatColor.of("#32a852") + "Completado!");
+    }
+
+    private boolean matchesLibro(int customModelData, int libroNumber) {
+        switch (libroNumber) {
+            case 1:
+                return customModelData == 26;
+            case 2:
+                return customModelData == 43;
+            case 3:
+                return customModelData == 27;
+            case 4:
+                return customModelData == 28;
+            case 5:
+                return customModelData == 29;
+            case 6:
+                return customModelData == 30;
+            case 7:
+                return customModelData == 36;
+            case 8:
+                return customModelData == 31;
+            case 9:
+                return customModelData == 32;
+            case 10:
+                return customModelData == 33;
+            default:
+                return false;
+        }
+    }
+
     private void setCooldown(Player player) {
         cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
     }
 
-    private boolean isInCooldown(Player player) {
-        UUID playerId = player.getUniqueId();
-        if (cooldowns.containsKey(playerId)) {
-            long lastInteractionTime = cooldowns.get(playerId);
-            long currentTime = System.currentTimeMillis();
-
-            if (currentTime - lastInteractionTime < COOLDOWN_TIME) {
-                return true;
-            }
-        }
-        return false;
+    public Map<UUID, BookData> getEstanteBooks() {
+        return estanteBooks;
     }
 }
-

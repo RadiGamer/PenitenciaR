@@ -6,12 +6,14 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.imradigamer.chainPlugin.Books.BooksCommand;
 import org.imradigamer.chainPlugin.Books.InteractionListener;
 import org.imradigamer.chainPlugin.Chains.*;
 import org.imradigamer.chainPlugin.Elevator.DoorAnimator;
 import org.imradigamer.chainPlugin.Elevator.DoorCommandExecutor;
 import org.imradigamer.chainPlugin.Elevator.ElevatorCommand;
 import org.imradigamer.chainPlugin.Glass.GlassBreakCommandExecutor;
+import org.imradigamer.chainPlugin.Hater.HaterCommand;
 import org.imradigamer.chainPlugin.Listeners.ChainedPlayerMovementListener;
 import org.imradigamer.chainPlugin.Listeners.DesgraciadosMovementListener;
 import org.imradigamer.chainPlugin.Listeners.KeyUseListener;
@@ -24,6 +26,7 @@ public class ChainPlugin extends JavaPlugin {
     private DoorAnimator doorAnimator;
     private boolean isTaskRunning = false;
     private BukkitRunnable repeatingTask;
+    private InteractionListener interactionListener;
 
     @Override
     public void onEnable() {
@@ -42,14 +45,16 @@ public class ChainPlugin extends JavaPlugin {
 
         cameraShaker = new CameraShaker(this);
         doorAnimator = new DoorAnimator(this);
+        interactionListener = new InteractionListener();
         //  doorManager = new DoorManager(this);
         this.getCommand("camerashake").setExecutor(new ShakeCommandExecutor(this, cameraShaker));
         this.getCommand("elevator").setExecutor(new ElevatorCommand(this));
         this.getCommand("glass").setExecutor(new GlassBreakCommandExecutor(this));
         this.getCommand("doors").setExecutor(new DoorCommandExecutor(this));
-
         this.getCommand("startblink").setExecutor(new StartShaderLoopCommand(this));
         this.getCommand("stopblink").setExecutor(new StopShaderLoopCommand(this));
+        this.getCommand("books").setExecutor(new BooksCommand(interactionListener.getEstanteBooks()));
+        this.getCommand("hater").setExecutor(new HaterCommand(this));
 
         ChainManager chainManager = new ChainManager(this);
         getCommand("chain").setExecutor(new ChainCommand(this));

@@ -19,12 +19,15 @@ commands:
   doors:
     description: Controla las puertas
     usage: /doors <open|close>
-  tagitems:
-    description: test
-    usage: /tagitems
   startblink:
     description: Starts the shader loop.
     usage: /startblink
   stopblink:
     description: Stops the shader loop.
     usage: /stopblink
+  books:
+    description: Control de los libros
+    usage: /books
+  hater:
+    description: Control de las animaciones del hater
+    usage: /hater
