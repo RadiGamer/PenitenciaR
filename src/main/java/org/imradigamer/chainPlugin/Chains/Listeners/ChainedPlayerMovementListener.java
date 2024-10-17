@@ -1,4 +1,4 @@
-package org.imradigamer.chainPlugin.Listeners;
+package org.imradigamer.chainPlugin.Chains.Listeners;
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import org.bukkit.Location;

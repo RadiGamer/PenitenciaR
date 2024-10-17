@@ -9,13 +9,19 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
-public class ElevatorCommand implements CommandExecutor {
+public class ElevatorCommand implements CommandExecutor, TabCompleter {
     private final JavaPlugin plugin;
 
 
@@ -298,4 +304,19 @@ public class ElevatorCommand implements CommandExecutor {
         }.runTaskLater(plugin, 5L);
     }
 
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        List<String> completions = new ArrayList<>();
+        List<String> subcommands = Arrays.asList("start1", "start2");
+
+        if (args.length == 1) {
+            for (String subcommand : subcommands) {
+                if (subcommand.toLowerCase().startsWith(args[0].toLowerCase())) {
+                    completions.add(subcommand);
+                }
+            }
+        }
+
+        return completions;
+    }
 }

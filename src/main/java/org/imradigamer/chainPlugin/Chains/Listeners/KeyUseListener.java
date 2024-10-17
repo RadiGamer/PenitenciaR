@@ -1,4 +1,4 @@
-package org.imradigamer.chainPlugin.Listeners;
+package org.imradigamer.chainPlugin.Chains.Listeners;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;

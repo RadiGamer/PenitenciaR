@@ -5,10 +5,17 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.imradigamer.chainPlugin.ChainPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class GlassBreakCommandExecutor implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class GlassBreakCommandExecutor implements CommandExecutor, TabCompleter {
 
     private final ChainPlugin plugin;
 
@@ -34,5 +41,21 @@ public class GlassBreakCommandExecutor implements CommandExecutor {
             }
         }
         return false;
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        List<String> completions = new ArrayList<>();
+        List<String> subcommands = Arrays.asList("break");
+
+        if (args.length == 1) {
+            for (String subcommand : subcommands) {
+                if (subcommand.toLowerCase().startsWith(args[0].toLowerCase())) {
+                    completions.add(subcommand);
+                }
+            }
+        }
+
+        return completions;
     }
 }

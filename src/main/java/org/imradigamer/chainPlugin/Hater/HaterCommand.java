@@ -9,11 +9,18 @@ import org.bukkit.block.data.Levelled;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class HaterCommand implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class HaterCommand implements CommandExecutor, TabCompleter {
 
     private final Plugin plugin;
 
@@ -53,6 +60,7 @@ public class HaterCommand implements CommandExecutor {
             return true;
         }
     }
+
     private boolean handleKillCommand(CommandSender sender) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
@@ -62,14 +70,14 @@ public class HaterCommand implements CommandExecutor {
 
             new BukkitRunnable() {
                 int photosTaken = 0;
-                final Location flashLocation1 = new Location(player.getWorld(), 27, 90, -83); // First flash light block
-                final Location flashLocation2 = new Location(player.getWorld(), 27, 90, -79); // Second flash light block
-                final Location particleLocation1 = new Location(player.getWorld(), 27.02, 90.56, -83.00); // First flash particle
-                final Location particleLocation2 = new Location(player.getWorld(), 26.82, 90.58, -78.00); // Second flash particle
+                final Location flashLocation1 = new Location(player.getWorld(), 27, 90, -83);
+                final Location flashLocation2 = new Location(player.getWorld(), 27, 90, -79);
+                final Location particleLocation1 = new Location(player.getWorld(), 27.02, 90.56, -83.00);
+                final Location particleLocation2 = new Location(player.getWorld(), 26.82, 90.58, -78.00);
 
                 @Override
                 public void run() {
-                    if (photosTaken < 5) {
+                    if (photosTaken < 15) {
                         simulateFlash(flashLocation1, particleLocation1);
 
                         new BukkitRunnable() {
@@ -77,14 +85,14 @@ public class HaterCommand implements CommandExecutor {
                             public void run() {
                                 simulateFlash(flashLocation2, particleLocation2);
                             }
-                        }.runTaskLater(plugin, 5L);
+                        }.runTaskLater(plugin, 7L);
 
                         photosTaken++;
                     } else {
                         cancel();
                     }
                 }
-            }.runTaskTimer(plugin, 180L, 10L);
+            }.runTaskTimer(plugin, 10L, 10L);
 
             return true;
         } else {
@@ -108,8 +116,24 @@ public class HaterCommand implements CommandExecutor {
                         levelledBlock.setLevel(3);
                         lightBlockLocation.getBlock().setBlockData(levelledBlock);
                     }
-                }.runTaskLater(plugin, 10L);
+                }.runTaskLater(plugin, 6L);
             }
         }
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        List<String> completions = new ArrayList<>();
+        List<String> subcommands = Arrays.asList("idle", "kill");
+
+        if (args.length == 1) {
+            for (String subcommand : subcommands) {
+                if (subcommand.toLowerCase().startsWith(args[0].toLowerCase())) {
+                    completions.add(subcommand);
+                }
+            }
+        }
+
+        return completions;
     }
 }

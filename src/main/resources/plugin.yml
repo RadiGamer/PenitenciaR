@@ -31,3 +31,6 @@ commands:
   hater:
     description: Control de las animaciones del hater
     usage: /hater
+  lights:
+    description: Control de las luces
+    usage: /lights

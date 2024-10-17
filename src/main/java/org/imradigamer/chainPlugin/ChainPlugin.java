@@ -14,9 +14,11 @@ import org.imradigamer.chainPlugin.Elevator.DoorCommandExecutor;
 import org.imradigamer.chainPlugin.Elevator.ElevatorCommand;
 import org.imradigamer.chainPlugin.Glass.GlassBreakCommandExecutor;
 import org.imradigamer.chainPlugin.Hater.HaterCommand;
-import org.imradigamer.chainPlugin.Listeners.ChainedPlayerMovementListener;
-import org.imradigamer.chainPlugin.Listeners.DesgraciadosMovementListener;
-import org.imradigamer.chainPlugin.Listeners.KeyUseListener;
+import org.imradigamer.chainPlugin.Lights.LightCommand;
+import org.imradigamer.chainPlugin.Lights.LightTabCompleter;
+import org.imradigamer.chainPlugin.Chains.Listeners.ChainedPlayerMovementListener;
+import org.imradigamer.chainPlugin.Chains.Listeners.DesgraciadosMovementListener;
+import org.imradigamer.chainPlugin.Chains.Listeners.KeyUseListener;
 import org.imradigamer.chainPlugin.Utils.StartShaderLoopCommand;
 import org.imradigamer.chainPlugin.Utils.StopShaderLoopCommand;
 
@@ -27,6 +29,7 @@ public class ChainPlugin extends JavaPlugin {
     private boolean isTaskRunning = false;
     private BukkitRunnable repeatingTask;
     private InteractionListener interactionListener;
+    private StartShaderLoopCommand startShaderLoopCommand;
 
     @Override
     public void onEnable() {
@@ -45,25 +48,29 @@ public class ChainPlugin extends JavaPlugin {
 
         cameraShaker = new CameraShaker(this);
         doorAnimator = new DoorAnimator(this);
+        startShaderLoopCommand = new StartShaderLoopCommand(this);
         interactionListener = new InteractionListener();
+        LightCommand lightCommand = new LightCommand();
         //  doorManager = new DoorManager(this);
+
         this.getCommand("camerashake").setExecutor(new ShakeCommandExecutor(this, cameraShaker));
         this.getCommand("elevator").setExecutor(new ElevatorCommand(this));
         this.getCommand("glass").setExecutor(new GlassBreakCommandExecutor(this));
         this.getCommand("doors").setExecutor(new DoorCommandExecutor(this));
-        this.getCommand("startblink").setExecutor(new StartShaderLoopCommand(this));
-        this.getCommand("stopblink").setExecutor(new StopShaderLoopCommand(this));
+        this.getCommand("startblink").setExecutor(startShaderLoopCommand);
+        this.getCommand("stopblink").setExecutor(new StopShaderLoopCommand(this, startShaderLoopCommand));
         this.getCommand("books").setExecutor(new BooksCommand(interactionListener.getEstanteBooks()));
         this.getCommand("hater").setExecutor(new HaterCommand(this));
+        this.getCommand("lights").setExecutor(new LightCommand());
+        this.getCommand("chain").setExecutor(new ChainCommand(this));
+        this.getCommand("lights").setTabCompleter(new LightTabCompleter(lightCommand.getRooms()));
 
         ChainManager chainManager = new ChainManager(this);
-        getCommand("chain").setExecutor(new ChainCommand(this));
         getServer().getScheduler().runTaskTimer(this, ChainManager::updateChains, 0L, 1L);
         getServer().getPluginManager().registerEvents(new KeyUseListener(this, chainManager), this);
         getServer().getPluginManager().registerEvents(new ChainedPlayerMovementListener(this), this);
         getServer().getPluginManager().registerEvents(new DesgraciadosMovementListener(), this);
         getServer().getPluginManager().registerEvents(new InteractionListener(), this);
-
 
 
     }
@@ -73,37 +80,6 @@ public class ChainPlugin extends JavaPlugin {
         ChainManager.clearAllChains();
     }
 
-    public void startPuzzleShaderTask() {
-        if (isTaskRunning) {
-            return; // Don't start a new task if it's already running
-        }
 
-        repeatingTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                // This is where the command is executed every 3 seconds
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "puzzle shader RED 1");
-            }
-        };
-        repeatingTask.runTaskTimer(this, 0, 60); // 60 ticks = 3 seconds
-        isTaskRunning = true;
-    }
-
-    // Method to stop the repeating task
-    public void stopPuzzleShaderTask() {
-        if (repeatingTask != null && !repeatingTask.isCancelled()) {
-            repeatingTask.cancel();
-        }
-        isTaskRunning = false;
-    }
-
-    // Optional: Method to toggle the task (start if stopped, stop if running)
-    public void togglePuzzleShaderTask() {
-        if (isTaskRunning) {
-            stopPuzzleShaderTask();
-        } else {
-            startPuzzleShaderTask();
-        }
-    }
 }
 

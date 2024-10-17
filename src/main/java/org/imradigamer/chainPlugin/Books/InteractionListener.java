@@ -21,7 +21,7 @@ import java.util.UUID;
 public class InteractionListener implements Listener {
 
     private final Map<UUID, BookData> estanteBooks = new HashMap<>();
-    private static final long COOLDOWN_TIME = 5000;
+    private static final long COOLDOWN_TIME = 3500;
     private final HashMap<UUID, Long> cooldowns = new HashMap<>();
 
     @EventHandler
@@ -113,6 +113,13 @@ public class InteractionListener implements Listener {
             Player player = event.getPlayer();
             ItemStack itemInHand = player.getInventory().getItemInMainHand();
 
+            UUID playerUUID = player.getUniqueId();
+
+            if (isPlayerOnCooldown(playerUUID)) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopimage "+player.getName());
+                return;
+            }
+
             if (itemInHand != null && itemInHand.getType() == Material.LEATHER) {
                 ItemMeta meta = itemInHand.getItemMeta();
                 if (meta != null && meta.hasCustomModelData()) {
@@ -120,34 +127,34 @@ public class InteractionListener implements Listener {
 
                     switch (customModelData) {
                         case 26:
-                            broadcastLibroMessage(1);
+                            broadcastLibroMessage(player,"1_El_Principito.png");
                             break;
                         case 43:
-                            broadcastLibroMessage(2);
+                            broadcastLibroMessage(player,"2_Don_quijote_de_la_mancha.png");
                             break;
                         case 27:
-                            broadcastLibroMessage(3);
+                            broadcastLibroMessage(player,"3_La_biblia.png");
                             break;
                         case 28:
-                            broadcastLibroMessage(4);
+                            broadcastLibroMessage(player,"4_cien_años_de_soledad.png");
                             break;
                         case 29:
-                            broadcastLibroMessage(5);
+                            broadcastLibroMessage(player,"5_Divina_comedia.png");
                             break;
                         case 30:
-                            broadcastLibroMessage(6);
+                            broadcastLibroMessage(player, "6_El_enigma_sagrado.png");
                             break;
                         case 36:
-                            broadcastLibroMessage(7);
+                            broadcastLibroMessage(player,"7_El_cuervo.png");
                             break;
                         case 31:
-                            broadcastLibroMessage(8);
+                            broadcastLibroMessage(player,"8_El_hombre_de_tiza.png");
                             break;
                         case 32:
-                            broadcastLibroMessage(9);
+                            broadcastLibroMessage(player,"9_El_monje_que_vendió_su_ferrari.png");
                             break;
                         case 33:
-                            broadcastLibroMessage(10);
+                            broadcastLibroMessage(player,"10_Cronicas_de_una_muerte_anunciada.png");
                             break;
                         default:
                             break;
@@ -158,8 +165,8 @@ public class InteractionListener implements Listener {
         }
     }
 
-    private void broadcastLibroMessage(int libroNumber) {
-        Bukkit.broadcastMessage("Aquí se interactuó con el libro " + libroNumber);
+    private void broadcastLibroMessage(Player player, String libro) {
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "playimage "+ player.getName()+ " 100 50 50 0.5 3 0.5 https://media.mbpcreators.com/"+libro);
     }
 
     private void handleEstanteInteraction(Player player, Interaction interaction, String estanteTag) {
@@ -239,51 +246,39 @@ public class InteractionListener implements Listener {
     }
 
     private void checkForCompletion() {
-        for (int i = 1; i <= 10; i++) {
-            int expectedCustomModelData;
+        Map<String, Integer> estanteRequirements = new HashMap<>();
+        estanteRequirements.put("estante_1", 26);
+        estanteRequirements.put("estante_2", 43);
+        estanteRequirements.put("estante_3", 27);
+        estanteRequirements.put("estante_4", 28);
+        estanteRequirements.put("estante_5", 29);
+        estanteRequirements.put("estante_6", 30);
+        estanteRequirements.put("estante_7", 36);
+        estanteRequirements.put("estante_8", 31);
+        estanteRequirements.put("estante_9", 32);
+        estanteRequirements.put("estante_10", 33);
 
-            switch (i) {
-                case 1:
-                    expectedCustomModelData = 26;
-                    break;
-                case 2:
-                    expectedCustomModelData = 43;
-                    break;
-                case 3:
-                    expectedCustomModelData = 27;
-                    break;
-                case 4:
-                    expectedCustomModelData = 28;
-                    break;
-                case 5:
-                    expectedCustomModelData = 29;
-                    break;
-                case 6:
-                    expectedCustomModelData = 30;
-                    break;
-                case 7:
-                    expectedCustomModelData = 36;
-                    break;
-                case 8:
-                    expectedCustomModelData = 31;
-                    break;
-                case 9:
-                    expectedCustomModelData = 32;
-                    break;
-                case 10:
-                    expectedCustomModelData = 33;
-                    break;
-                default:
-                    return;
+        for (Map.Entry<String, Integer> entry : estanteRequirements.entrySet()) {
+            String estanteTag = entry.getKey();
+            int expectedCustomModelData = entry.getValue();
+
+            boolean estanteFound = false;
+            for (Interaction interaction : Bukkit.getWorlds().get(0).getEntitiesByClass(Interaction.class)) {
+                if (interaction.getScoreboardTags().contains(estanteTag)) {
+                    estanteFound = true;
+                    BookData savedBook = estanteBooks.get(interaction.getUniqueId());
+
+                    if (savedBook == null || savedBook.getCustomModelData() != expectedCustomModelData) {
+                        return;
+                    }
+                }
             }
 
-            boolean hasBook = estanteBooks.values().stream()
-                    .anyMatch(book -> book.getCustomModelData() == expectedCustomModelData);
-
-            if (!hasBook) {
+            if (!estanteFound) {
                 return;
             }
         }
+
         Bukkit.broadcastMessage(ChatColor.of("#32a852") + "Completado!");
     }
 
@@ -316,6 +311,14 @@ public class InteractionListener implements Listener {
 
     private void setCooldown(Player player) {
         cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+    }
+    private boolean isPlayerOnCooldown(UUID playerUUID) {
+        if (!cooldowns.containsKey(playerUUID)) {
+            return false;
+        }
+
+        long lastInteractionTime = cooldowns.get(playerUUID);
+        return (System.currentTimeMillis() - lastInteractionTime) < COOLDOWN_TIME;
     }
 
     public Map<UUID, BookData> getEstanteBooks() {

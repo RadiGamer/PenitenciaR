@@ -6,29 +6,26 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.imradigamer.chainPlugin.ChainPlugin;
 
-
 public class StopShaderLoopCommand implements CommandExecutor {
 
     private final ChainPlugin plugin;
-    private final StartShaderLoopCommand startCommand; // Reference to start command to get task ID
+    private final StartShaderLoopCommand startCommand;
 
-    public StopShaderLoopCommand(ChainPlugin plugin) {
+    public StopShaderLoopCommand(ChainPlugin plugin, StartShaderLoopCommand startCommand) {
         this.plugin = plugin;
-        this.startCommand = new StartShaderLoopCommand(plugin);
+        this.startCommand = startCommand;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         int taskID = startCommand.getTaskID();
 
-        // Check if there is a running task
         if (taskID == -1) {
             return true;
         }
 
-        // Stop the repeating task
         Bukkit.getScheduler().cancelTask(taskID);
-        startCommand.resetTaskID(); // Reset the task ID to -1 after stopping
+        startCommand.resetTaskID();
 
         return true;
     }
