@@ -1,9 +1,36 @@
-name: ChainPlugin
+name: PenitenciaR
 version: '1.0-SNAPSHOT'
 main: org.imradigamer.chainPlugin.ChainPlugin
 api-version: '1.21'
 authors: [ ImRadiGamer ]
 commands:
   chain:
-    description: Commands for managing the chain
+    description: Control de las cadenas
     usage: /chain <origin|start|stop>
+  camerashake:
+    description: Activa el shake de la camara
+    usage: /<command> shake
+  elevator:
+    description: Control del elevador
+    usage: /<command> start
+  glass:
+    description: Rompe el cristal
+    usage: /glass break
+  doors:
+    description: Controla las puertas
+    usage: /doors <open|close>
+  startblink:
+    description: Starts the shader loop.
+    usage: /startblink
+  stopblink:
+    description: Stops the shader loop.
+    usage: /stopblink
+  books:
+    description: Control de los libros
+    usage: /books
+  hater:
+    description: Control de las animaciones del hater
+    usage: /hater
+  lights:
+    description: Control de las luces
+    usage: /lights
