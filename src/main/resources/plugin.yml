@@ -34,3 +34,9 @@ commands:
   lights:
     description: Control de las luces
     usage: /lights
+  boots:
+    description: Control de las botas
+    usage: /boots
+  bucket:
+    description: Control de las cubetas
+    usage: /bucket

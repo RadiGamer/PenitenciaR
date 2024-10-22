@@ -7,16 +7,17 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-public class BooksCommand implements CommandExecutor {
+public class BooksCommand implements CommandExecutor, TabCompleter {
 
     private final Map<UUID, BookData> estanteBooks;
 
@@ -126,5 +127,12 @@ public class BooksCommand implements CommandExecutor {
                         itemDisplay.setItemStack(new ItemStack(Material.AIR));
                     });
         });
+    }
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        if (args.length == 1) {
+            return Arrays.asList("reset");
+        }
+        return Collections.emptyList();
     }
 }

@@ -78,7 +78,7 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
                         public void run() {
                             triggerFlickerSequence(corner1, corner2);
                         }
-                    }.runTaskLater(plugin, 200L);
+                    }.runTaskLater(plugin, 100L);
 
                     new BukkitRunnable() {
                         @Override
@@ -100,9 +100,9 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
                                     }
                                     animator.animateDoors2(true);
                                 }
-                            }.runTaskLater(plugin, 150L);
+                            }.runTaskLater(plugin, 75L);
                         }
-                    }.runTaskLater(plugin, 400L);
+                    }.runTaskLater(plugin, 300L);
                 }
             }.runTaskLater(plugin, 100L);
     }
@@ -130,7 +130,7 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
                         public void run() {
                             triggerFlickerSequence(corner1, corner2);
                         }
-                    }.runTaskLater(plugin, 200L);
+                    }.runTaskLater(plugin, 100L);
 
 
                     new BukkitRunnable() {
@@ -153,9 +153,9 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
                                     }
                                     animator.animateDoors3(true);
                                 }
-                            }.runTaskLater(plugin, 150L);
+                            }.runTaskLater(plugin, 75L);
                         }
-                    }.runTaskLater(plugin, 400L);
+                    }.runTaskLater(plugin, 300L);
                 }
             }.runTaskLater(plugin, 100L);
     }

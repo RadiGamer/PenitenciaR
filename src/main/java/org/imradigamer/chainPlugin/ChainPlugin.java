@@ -6,8 +6,13 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.imradigamer.chainPlugin.Audios.AudioInteractionListener;
 import org.imradigamer.chainPlugin.Books.BooksCommand;
 import org.imradigamer.chainPlugin.Books.InteractionListener;
+import org.imradigamer.chainPlugin.Boots.BootInteractListener;
+import org.imradigamer.chainPlugin.Boots.RestartBootsCommand;
+import org.imradigamer.chainPlugin.Buckets.BucketCommandExecutor;
+import org.imradigamer.chainPlugin.Buckets.BucketListener;
 import org.imradigamer.chainPlugin.Chains.*;
 import org.imradigamer.chainPlugin.Elevator.DoorAnimator;
 import org.imradigamer.chainPlugin.Elevator.DoorCommandExecutor;
@@ -64,6 +69,8 @@ public class ChainPlugin extends JavaPlugin {
         this.getCommand("lights").setExecutor(new LightCommand());
         this.getCommand("chain").setExecutor(new ChainCommand(this));
         this.getCommand("lights").setTabCompleter(new LightTabCompleter(lightCommand.getRooms()));
+        this.getCommand("boots").setExecutor(new RestartBootsCommand(this));
+        this.getCommand("bucket").setExecutor(new BucketCommandExecutor());
 
         ChainManager chainManager = new ChainManager(this);
         getServer().getScheduler().runTaskTimer(this, ChainManager::updateChains, 0L, 1L);
@@ -71,6 +78,10 @@ public class ChainPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ChainedPlayerMovementListener(this), this);
         getServer().getPluginManager().registerEvents(new DesgraciadosMovementListener(), this);
         getServer().getPluginManager().registerEvents(new InteractionListener(), this);
+        getServer().getPluginManager().registerEvents(new AudioInteractionListener(),this);
+        getServer().getPluginManager().registerEvents(new BootInteractListener(), this);
+        getServer().getPluginManager().registerEvents(new BucketListener(), this);
+
 
 
     }

@@ -219,6 +219,10 @@ public class ChainManager {
         for (Player player : toRemove) {
             clearPlayerChain(player);
         }
+        Bukkit.getScheduler().scheduleSyncDelayedTask(Bukkit.getPluginManager().getPlugin("PenitenciaR"), () -> {
+            Bukkit.broadcastMessage("Ahora ya pueden estirarse para liberarse");
+            setCommandActivated(true);
+        }, 200L);
     }
 
     public static Location getInitialChainingLocation(Player player) {
@@ -243,7 +247,7 @@ public class ChainManager {
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopblink");
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "execute as @e[tag=aj.trituradora.root] run function animated_java:trituradora/animations/on/pause");
 
-        // Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "timer delete b6ea1");
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "chain stop");
         Bukkit.broadcastMessage(ChatColor.GRAY+"timer delete b6ea1");
 
         for (Player player : chainedPlayers.keySet()) {

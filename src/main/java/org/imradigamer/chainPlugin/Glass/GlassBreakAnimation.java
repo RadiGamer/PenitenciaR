@@ -121,6 +121,7 @@ public class GlassBreakAnimation {
                 glassBlock.setType(Material.AIR);
 
                 glassBlock.getWorld().playSound(glassBlock.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "execute as @e[tag=aj.pinchos.root] run function animated_java:pinchos/animations/start/resume");
             }
         }
         Location startbarrier = new Location(world, 139, 56, -49);
