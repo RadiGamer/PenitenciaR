@@ -57,115 +57,104 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
 
 
     private void executeElevatorSequence1() {
-        DoorAnimator animator = new DoorAnimator(plugin);
-        animator.animateDoors(false);
-        for (Player player : plugin.getServer().getOnlinePlayers()) {
-            player.sendMessage("Puertas cerrandose");
-        }
-            new BukkitRunnable() {
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"execute as @a at @s run playsound minecraft:2_sonido_elevador master @s ~ ~ ~ 1");
 
-                @Override
-                public void run() {
-                    for (Player player : plugin.getServer().getOnlinePlayers()) {
-                        player.sendMessage("Elevador Andando");
-                    }
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                DoorAnimator animator = new DoorAnimator(plugin);
+                animator.animateDoors(false);
 
-                    Location corner1 = new Location(Bukkit.getWorld("world"), 133, 58, 8);
-                    Location corner2 = new Location(Bukkit.getWorld("world"), 113, 58, 3);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
 
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            triggerFlickerSequence(corner1, corner2);
-                        }
-                    }.runTaskLater(plugin, 100L);
+                        Location corner1 = new Location(Bukkit.getWorld("world"), 133, 58, 8);
+                        Location corner2 = new Location(Bukkit.getWorld("world"), 113, 58, 3);
 
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            replaceBlocksInAreaWithLight(corner1, corner2, 15);
-
-                            for (Player player : plugin.getServer().getOnlinePlayers()) {
-                                player.sendMessage("Sonido Marcando Piso");
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                triggerFlickerSequence(corner1, corner2);
                             }
-                            checkElevator1();
-                            checkElevator2();
-                            checkElevator3();
+                        }.runTaskLater(plugin, 100L);
 
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    for (Player player : plugin.getServer().getOnlinePlayers()) {
-                                        player.sendMessage("Puertas se abren");
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                replaceBlocksInAreaWithLight(corner1, corner2, 15);
+
+                                checkElevator1();
+                                checkElevator2();
+                                checkElevator3();
+
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        animator.animateDoors2(true);
                                     }
-                                    animator.animateDoors2(true);
-                                }
-                            }.runTaskLater(plugin, 75L);
-                        }
-                    }.runTaskLater(plugin, 300L);
-                }
-            }.runTaskLater(plugin, 100L);
+                                }.runTaskLater(plugin, 75L);
+                            }
+                        }.runTaskLater(plugin, 360L);
+                    }
+                }.runTaskLater(plugin, 100L);
+            }
+        }.runTaskLater(plugin, 40L);  // Delay the entire sequence by 2 seconds (40 ticks)
     }
+
 
 //TODO CAMBIAR CADA MENSAJE A BUKKIT BROADCAST
 
     private void executeElevatorSequence2() {
-        DoorAnimator animator = new DoorAnimator(plugin);
-        animator.animateDoors2(false);
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"execute as @a at @s run playsound minecraft:2_sonido_elevador master @s ~ ~ ~ 1");
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                DoorAnimator animator = new DoorAnimator(plugin);
+                animator.animateDoors2(false);
 
-        for(Player player : plugin.getServer().getOnlinePlayers()) {
-            player.sendMessage("Puertas cerrandose");
-        }
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    for(Player player : plugin.getServer().getOnlinePlayers()) {
-                        player.sendMessage("Elevador Andando");
-                    }
-                    Location corner2 = new Location(Bukkit.getWorld("world"), 111, 94, 2);
-                    Location corner1 = new Location(Bukkit.getWorld("world"), 135, 75, 10);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        Location corner2 = new Location(Bukkit.getWorld("world"), 111, 94, 2);
+                        Location corner1 = new Location(Bukkit.getWorld("world"), 135, 75, 10);
 
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            triggerFlickerSequence(corner1, corner2);
-                        }
-                    }.runTaskLater(plugin, 100L);
-
-
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-
-                            for(Player player : plugin.getServer().getOnlinePlayers()) {
-                                player.sendMessage("Sonido Marcando piso");
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                triggerFlickerSequence(corner1, corner2);
                             }
-                            replaceBlocksInAreaWithLight(corner1, corner2, 15);
-                            checkElevator12();
-                            checkElevator22();
-                            checkElevator32();
+                        }.runTaskLater(plugin, 100L);
 
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    for(Player player : plugin.getServer().getOnlinePlayers()) {
-                                        player.sendMessage("Puertas se abren");
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                replaceBlocksInAreaWithLight(corner1, corner2, 15);
+                                checkElevator12();
+                                checkElevator22();
+                                checkElevator32();
+
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        animator.animateDoors3(true);
                                     }
-                                    animator.animateDoors3(true);
-                                }
-                            }.runTaskLater(plugin, 75L);
-                        }
-                    }.runTaskLater(plugin, 300L);
-                }
-            }.runTaskLater(plugin, 100L);
+                                }.runTaskLater(plugin, 75L);
+                            }
+                        }.runTaskLater(plugin, 360L);
+                    }
+                }.runTaskLater(plugin, 100L);
+            }
+        }.runTaskLater(plugin, 40L);  // This delays the entire sequence by 2 seconds (40 ticks)
     }
+
 
 
     private void checkElevator1() {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             Location loc = player.getLocation();
             if (loc.getBlockX() >= 129 && loc.getBlockX() <= 133 &&
-                    loc.getBlockY() == 55 &&
+                    loc.getBlockY() >= 55 && loc.getBlockY() <= 60 &&
                     loc.getBlockZ() >= 3 && loc.getBlockZ() <= 10) {
                 loc.setY(loc.getY() + 19);
                 player.teleport(loc);
@@ -177,7 +166,7 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             Location loc = player.getLocation();
             if (loc.getBlockX() <= 125 && loc.getBlockX() >= 121 &&
-                    loc.getBlockY() == 55 &&
+                    loc.getBlockY() >= 55 && loc.getBlockY() <= 60 &&
                     loc.getBlockZ() >= 3 && loc.getBlockZ() <= 10) {
                 loc.setY(loc.getY() + 33);
                 player.teleport(loc);
@@ -189,7 +178,7 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             Location loc = player.getLocation();
             if (loc.getBlockX() <= 117 && loc.getBlockX() >= 113 &&
-                    loc.getBlockY() == 55 &&
+                    loc.getBlockY() >= 55 && loc.getBlockY() <= 60 &&
                     loc.getBlockZ() >= 3 && loc.getBlockZ() <= 10) {
                 loc.setY(loc.getY() + 19);
                 player.teleport(loc);
@@ -200,7 +189,7 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             Location loc = player.getLocation();
             if (loc.getBlockX() >= 129 && loc.getBlockX() <= 133 &&
-                    loc.getBlockY() == 74 &&
+                    loc.getBlockY() >= 74 && loc.getBlockY() <= 79 &&
                     loc.getBlockZ() >= 3 && loc.getBlockZ() <= 10) {
                 loc.setY(loc.getY() + 32);
                 player.teleport(loc);
@@ -212,7 +201,7 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             Location loc = player.getLocation();
             if (loc.getBlockX() <= 125 && loc.getBlockX() >= 121 &&
-                    loc.getBlockY() == 88 &&
+                    loc.getBlockY() >= 88 && loc.getBlockY() <= 93 &&
                     loc.getBlockZ() >= 3 && loc.getBlockZ() <= 10) {
                 loc.setY(loc.getY() + 18);
                 player.teleport(loc);
@@ -224,7 +213,7 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             Location loc = player.getLocation();
             if (loc.getBlockX() <= 117 && loc.getBlockX() >= 113 &&
-                    loc.getBlockY() == 74 &&
+                    loc.getBlockY() >= 74 && loc.getBlockY() <= 79 &&
                     loc.getBlockZ() >= 3 && loc.getBlockZ() <= 10) {
                 loc.setY(loc.getY() + 32);
                 player.teleport(loc);

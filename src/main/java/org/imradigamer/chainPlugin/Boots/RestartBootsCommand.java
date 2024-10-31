@@ -59,6 +59,20 @@ public class RestartBootsCommand implements CommandExecutor, TabCompleter {
                     display.setItemStack(ironBoots);
 
                 });
+        player.getNearbyEntities(5, 5, 5).stream()
+                .filter(entity -> entity instanceof ItemDisplay)
+                .map(entity -> (ItemDisplay) entity)
+                .filter(display -> display.getScoreboardTags().contains("visual_botas_3"))
+                .forEach(display -> {
+                    ItemStack ironBoots = new ItemStack(Material.CHAINMAIL_BOOTS);
+                    ItemMeta meta = ironBoots.getItemMeta();
+                    if (meta != null) {
+                        ironBoots.setItemMeta(meta);
+                    }
+
+                    display.setItemStack(ironBoots);
+
+                });
 
         return true;
 

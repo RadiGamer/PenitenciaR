@@ -20,6 +20,7 @@ import java.util.*;
 public class BooksCommand implements CommandExecutor, TabCompleter {
 
     private final Map<UUID, BookData> estanteBooks;
+    private DisplayManager displayManager;
 
     public BooksCommand(Map<UUID, BookData> estanteBooks) {
         this.estanteBooks = estanteBooks;
@@ -27,8 +28,12 @@ public class BooksCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+
+        displayManager = new DisplayManager();
+
         if (args.length == 1 && args[0].equalsIgnoreCase("reset")) {
             resetAllBooksAndDisplays();
+            displayManager.setDisplayAndBarriers();
             return true;
         }
         return false;

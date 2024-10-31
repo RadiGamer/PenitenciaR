@@ -4,6 +4,10 @@ import org.bukkit.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -14,7 +18,7 @@ import org.imradigamer.chainPlugin.ChainPlugin;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ChainManager {
+public class ChainManager implements Listener {
 
     private static Location chainOrigin;
     private static final Map<Player, List<BlockDisplay>> chainedPlayers = new HashMap<>();
@@ -25,6 +29,10 @@ public class ChainManager {
     private final ChainPlugin plugin;
     private boolean isTaskRunning = false;
     private BukkitRunnable repeatingTask;
+    private static final Set<UUID> disgraciadosPlayers = new HashSet<>();
+    private static final Set<UUID> rolePlayerGroup = new HashSet<>();
+    private static final Set<UUID> previouslyChainedPlayers = new HashSet<>();
+
 
     public ChainManager(ChainPlugin plugin) {
         this.plugin = plugin;
@@ -33,6 +41,32 @@ public class ChainManager {
     public static void setChainOrigin(Location location) {
         chainOrigin = location;
     }
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+
+        if (isPlayerChained(player)) {
+            // Add the player's UUID to the previously chained set
+            previouslyChainedPlayers.add(player.getUniqueId());
+
+            clearPlayerChain(player);
+        }
+
+        initialChainingLocations.remove(player);
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+
+        if (previouslyChainedPlayers.contains(player.getUniqueId())) {
+            // Chain the player back when they rejoin
+            chainPlayer(player);
+
+            previouslyChainedPlayers.remove(player.getUniqueId());
+        }
+    }
+
 
     public static void startChainingPlayers(World world, ChainPlugin plugin) {
         List<Player> adventurePlayers = world.getPlayers().stream()
@@ -40,7 +74,7 @@ public class ChainManager {
                 .collect(Collectors.toList());
 
         if (adventurePlayers.isEmpty()) {
-            Bukkit.getLogger().info("No se detectaron jugadores en modo aventura");
+            Bukkit.getLogger().info("No adventure mode players detected");
             return;
         }
 
@@ -51,13 +85,12 @@ public class ChainManager {
         for (Player player : adventurePlayers) {
             if (player.hasPermission("chain.desgraciados")) {
                 specialPlayers.add(player);
-                //todo EQUIPAR CALABAZA AQUI
-                equipHeadBand(player);
+                disgraciadosPlayers.add(player.getUniqueId());  // Track disgraciados players
+                equipHeadBand(player);  // Equip the headband
             } else {
                 normalPlayers.add(player);
-                //TODO AQUI VA LA LLAVE
                 ChainCommand chainCommand = new ChainCommand(plugin);
-                chainCommand.giveKey(player);
+                chainCommand.giveKey(player);  // Give the key to the player
             }
         }
 
@@ -101,34 +134,33 @@ public class ChainManager {
         }
     }
 
-    private static void chainPlayer(Player player) {
-        List<BlockDisplay> chainLinks = chainedPlayers.getOrDefault(player, new ArrayList<>());
-        chainLinks.forEach(BlockDisplay::remove);
-        chainLinks.clear();
+    public static void chainPlayer(Player player) {
+        if (!isPlayerChained(player)) {
+            List<BlockDisplay> chainLinks = new ArrayList<>();
 
-        Location playerLocation = player.getLocation().clone();
-        double distance = chainOrigin.distance(playerLocation);
-        Vector direction = playerLocation.toVector().subtract(chainOrigin.toVector()).normalize();
+            Location playerLocation = player.getLocation().clone();
+            double distance = chainOrigin.distance(playerLocation);
+            Vector direction = playerLocation.toVector().subtract(chainOrigin.toVector()).normalize();
 
+            double interval = Math.max(0.3, distance / 10);
+            int numberOfLinks = (int) (distance / interval);
 
-        double interval = Math.max(0.3, distance / 10);
+            for (int i = 0; i <= numberOfLinks; i++) {
+                Location chainLinkLocation = chainOrigin.clone().add(direction.clone().multiply(i * interval));
+                float yaw = calculateYaw(direction);
+                chainLinkLocation.setYaw(yaw);
+                BlockDisplay chainLink = player.getWorld().spawn(chainLinkLocation, BlockDisplay.class);
+                BlockData chainBlockData = Material.CHAIN.createBlockData();
+                chainLink.setBlock(chainBlockData);
+                chainLink.setPersistent(true);
+                chainLinks.add(chainLink);
+            }
 
-        int numberOfLinks = (int) (distance / interval);
-
-        for (int i = 0; i <= numberOfLinks; i++) {
-            Location chainLinkLocation = chainOrigin.clone().add(direction.clone().multiply(i * interval));
-            float yaw = calculateYaw(direction);
-            chainLinkLocation.setYaw(yaw);
-            BlockDisplay chainLink = player.getWorld().spawn(chainLinkLocation, BlockDisplay.class);
-            BlockData chainBlockData = Material.CHAIN.createBlockData();
-            chainLink.setBlock(chainBlockData);
-            chainLink.setPersistent(true);
-            chainLinks.add(chainLink);
+            chainedPlayers.put(player, chainLinks);
+            initialChainingLocations.put(player, playerLocation);
         }
-
-        chainedPlayers.put(player, chainLinks);
-        initialChainingLocations.put(player, playerLocation);
     }
+
 
     private static float calculateYaw(Vector direction) {
         double dx = direction.getX();
@@ -158,8 +190,12 @@ public class ChainManager {
         }
         chainedPlayers.remove(player);
         initialChainingLocations.remove(player);
+            if (player.hasPermission("chain.desgraciados")) {
+                disgraciadosPlayers.add(player.getUniqueId());
+                equipHeadBand(player);
+            }
     }
-    
+
     // Update chains to follow players
     public static void updateChains() {
 
@@ -220,7 +256,13 @@ public class ChainManager {
             clearPlayerChain(player);
         }
         Bukkit.getScheduler().scheduleSyncDelayedTask(Bukkit.getPluginManager().getPlugin("PenitenciaR"), () -> {
-            Bukkit.broadcastMessage("Ahora ya pueden estirarse para liberarse");
+
+            for(Player p: Bukkit.getOnlinePlayers()){
+                if(p.isOp()){
+                    p.sendMessage("Ahora ya pueden estirarse para liberarse");
+                }
+            }
+
             setCommandActivated(true);
         }, 200L);
     }
@@ -248,29 +290,17 @@ public class ChainManager {
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "execute as @e[tag=aj.trituradora.root] run function animated_java:trituradora/animations/on/pause");
 
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "chain stop");
-        Bukkit.broadcastMessage(ChatColor.GRAY+"timer delete b6ea1");
 
+        for(Player p:Bukkit.getOnlinePlayers()){
+            if(p.isOp()){
+                p.sendMessage(ChatColor.RED+"ELIMINAR TIMER AQUI");
+            }
+        }
+
+
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "chain images");
         for (Player player : chainedPlayers.keySet()) {
             removeHeadBand(player);
-            if (player.hasPermission("chain.desgraciados")) {
-
-                ItemStack key = new ItemStack(Material.RAW_GOLD);
-                ItemMeta meta = key.getItemMeta();
-
-                if (toggle) {
-                    meta.setCustomModelData(15);
-                    meta.setDisplayName(" ");
-                } else {
-                    meta.setCustomModelData(16);
-                    meta.setDisplayName(" ");
-                }
-                key.setItemMeta(meta);
-                player.getInventory().addItem(key);
-
-                toggle = !toggle;
-
-                playersToFree.add(player);
-            }
         }
 
         for (Player player : playersToFree) {
@@ -307,7 +337,7 @@ public class ChainManager {
                 double currentDistance = player.getLocation().distance(initialLocation);
 
                 // If any player has not moved more than 2.0 blocks away from their initial location, return false
-                if (currentDistance <= 2.0) {
+                if (currentDistance <= 3.0) {
                     return false;
                 }
             }
@@ -330,7 +360,7 @@ public class ChainManager {
         if (headItem != null && headItem.getType() == Material.CARVED_PUMPKIN) {
             ItemMeta meta = headItem.getItemMeta();
             if (meta != null && meta.hasCustomModelData() && meta.getCustomModelData() == 1) {
-                player.getInventory().setHelmet(null);
+                player.getInventory().setHelmet(new ItemStack(Material.AIR));
             }
         }
     }

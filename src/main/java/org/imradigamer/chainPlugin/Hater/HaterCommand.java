@@ -1,9 +1,6 @@
 package org.imradigamer.chainPlugin.Hater;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.command.Command;
@@ -110,13 +107,18 @@ public class HaterCommand implements CommandExecutor, TabCompleter {
 
                 particleLocation.getWorld().spawnParticle(Particle.FLASH, particleLocation, 1);
 
+                for(Player player: Bukkit.getOnlinePlayers()){
+                    player.playSound(particleLocation, "minecraft:2_rafaga_de_flash_solo", SoundCategory.BLOCKS, 0.2F, 1F);
+                }
+
+
                 new BukkitRunnable() {
                     @Override
                     public void run() {
                         levelledBlock.setLevel(3);
                         lightBlockLocation.getBlock().setBlockData(levelledBlock);
                     }
-                }.runTaskLater(plugin, 6L);
+                }.runTaskLater(plugin, 22L);
             }
         }
     }

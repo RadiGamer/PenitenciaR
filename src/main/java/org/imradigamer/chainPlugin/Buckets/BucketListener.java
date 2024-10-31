@@ -27,7 +27,6 @@ public class BucketListener implements Listener {
 
                 ItemStack bucket = new ItemStack(Material.BUCKET);
                 ItemMeta meta = bucket.getItemMeta();
-                meta.setDisplayName(" ");
                 bucket.setItemMeta(meta);
                 player.getInventory().addItem(bucket);
 
@@ -35,6 +34,8 @@ public class BucketListener implements Listener {
                 double x = entityLocation.getX();
                 double y = entityLocation.getY();
                 double z = entityLocation.getZ();
+
+
 
                 String command = String.format(
                         "execute positioned %.2f %.2f %.2f run execute as @n[limit=1,tag=aj.cubeta.root] run function animated_java:cubeta/animations/fall/stop",

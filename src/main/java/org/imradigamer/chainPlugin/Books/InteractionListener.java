@@ -26,6 +26,9 @@ public class InteractionListener implements Listener {
     private static final long COOLDOWN_TIME_NOTES = 7500;
     private final HashMap<UUID, Long> cooldowns_books = new HashMap<>();
     private final HashMap<UUID, Long> cooldowns_notes = new HashMap<>();
+    private DisplayManager displayManager;
+
+
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEntityEvent event) {
@@ -34,17 +37,17 @@ public class InteractionListener implements Listener {
         if (event.getRightClicked() instanceof Interaction) {
             Interaction interaction = (Interaction) event.getRightClicked();
 
-
             for (int i = 1; i <= 10; i++) {
                 String libroTag = "libro_" + i;
                 String visualLibroTag = "visual_libro_" + i;
 
                 if (interaction.getScoreboardTags().contains(libroTag)) {
-                    giveBookToPlayer(player, i);
+                    boolean bookGiven = giveBookToPlayer(player, i);
 
-                    updateVisualBook(interaction, visualLibroTag, i);
-
-                    interaction.remove();
+                    if (bookGiven) {
+                        updateVisualBook(interaction, visualLibroTag, i);
+                        interaction.remove();
+                    }
 
                     return;
                 }
@@ -75,43 +78,70 @@ public class InteractionListener implements Listener {
         titleMap.put("nota_8", "ꑄ");
         titleMap.put("nota_9", "ꑅ");
         titleMap.put("nota_10", "ꑆ");
+        titleMap.put("nota_laberinto", "ꐼ");
+        titleMap.put("nota_pasillo", "ꐻ");
+
+        // Define commandMap with both key and value types
+        Map<String, String> commandMap = new HashMap<>();
+        commandMap.put("Libro_veneno", "playimage " + player.getName() + " 100 100 100 1 6 1 https://media.mbpcreators.com/libro_cuadros.png");
 
         if (entity instanceof Interaction) {
             Interaction interaction = (Interaction) entity;
-
             UUID playerUUID = player.getUniqueId();
 
             if (isPlayerOnCooldown_notes(playerUUID)) {
-                player.sendTitle(" ","",1,1,1);
+                player.sendTitle(" ", "", 1, 1, 1);
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopimage " + player.getName());
                 removeCooldown_notes(player);
                 return;
             }
 
-
+            // Handle title interactions
             for (Map.Entry<String, String> entry : titleMap.entrySet()) {
                 String tag = entry.getKey();
                 String title = entry.getValue();
 
                 if (interaction.getScoreboardTags().contains(tag)) {
-                    setCooldown(player,false);
-                    player.sendTitle(title, "", 5, 100, 5);  // Title: specific title, no subtitle, timings (fade in: 10 ticks, stay: 70 ticks, fade out: 20 ticks)
-                    break;
+                    setCooldown(player, false);
+                    player.sendTitle(title, "", 5, 100, 5); // Title timings
+                    return;
+                }
+            }
+
+            // Handle command interactions
+            for (Map.Entry<String, String> entry : commandMap.entrySet()) {
+                String tag = entry.getKey();
+                String command = entry.getValue();
+
+                if (interaction.getScoreboardTags().contains(tag)) {
+                    setCooldown(player, false);
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                    return;
                 }
             }
         }
     }
-    private void giveBookToPlayer(Player player, int libroNumber) {
+
+    private boolean giveBookToPlayer(Player player, int libroNumber) {
+        // Create the book item with custom model data
         ItemStack book = new ItemStack(Material.LEATHER);
         ItemMeta meta = book.getItemMeta();
         if (meta != null) {
             meta.setCustomModelData(getCustomModelDataForLibro(libroNumber));
             meta.setDisplayName(" ");
             book.setItemMeta(meta);
-
         }
 
-        player.getInventory().addItem(book);
-        player.sendMessage("Has recibido el libro " + libroNumber);
+        for (int i = 0; i < 9; i++) {
+            if (player.getInventory().getItem(i) == null) {
+                player.getInventory().setItem(i, book);
+                return true;
+            }
+        }
+
+        // No space in the hotbar
+        player.sendMessage(ChatColor.RED + "No tienes espacio en la barra de acceso rápido para recibir el libro.");
+        return false;
     }
 
     private int getCustomModelDataForLibro(int libroNumber) {
@@ -161,11 +191,10 @@ public class InteractionListener implements Listener {
             UUID playerUUID = player.getUniqueId();
 
             if (isPlayerOnCooldown_books(playerUUID)) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopimage "+player.getName());
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopimage " + player.getName());
                 removeCooldown_books(player);
                 return;
             }
-
             if (itemInHand != null && itemInHand.getType() == Material.LEATHER) {
                 ItemMeta meta = itemInHand.getItemMeta();
                 if (meta != null && meta.hasCustomModelData()) {
@@ -173,38 +202,39 @@ public class InteractionListener implements Listener {
 
                     switch (customModelData) {
                         case 26:
-                            broadcastLibroMessage(player,"1_El_Principito.png");
+                            broadcastLibroMessage(player, "1_El_Principito.png");
                             break;
                         case 43:
-                            broadcastLibroMessage(player,"2_Don_quijote_de_la_mancha.png");
+                            broadcastLibroMessage(player, "2_Don_quijote_de_la_mancha.png");
                             break;
                         case 27:
-                            broadcastLibroMessage(player,"3_La_biblia.png");
+                            broadcastLibroMessage(player, "3_La_biblia.png");
                             break;
                         case 28:
-                            broadcastLibroMessage(player,"4_cien_años_de_soledad.png");
+                            broadcastLibroMessage(player, "4_cien_años_de_soledad.png");
                             break;
                         case 29:
-                            broadcastLibroMessage(player,"5_Divina_comedia.png");
+                            broadcastLibroMessage(player, "5_Divina_comedia.png");
                             break;
                         case 30:
                             broadcastLibroMessage(player, "6_El_enigma_sagrado.png");
                             break;
                         case 51:
-                            broadcastLibroMessage(player,"7_El_cuervo.png");
+                            broadcastLibroMessage(player, "7_El_cuervo.png");
                             break;
                         case 31:
-                            broadcastLibroMessage(player,"8_El_hombre_de_tiza.png");
+                            broadcastLibroMessage(player, "8_El_hombre_de_tiza.png");
                             break;
                         case 32:
-                            broadcastLibroMessage(player,"9_El_monje_que_vendió_su_ferrari.png");
+                            broadcastLibroMessage(player, "9_El_monje_que_vendió_su_ferrari.png");
                             break;
                         case 33:
-                            broadcastLibroMessage(player,"10_Cronicas_de_una_muerte_anunciada.png");
+                            broadcastLibroMessage(player, "10_Cronicas_de_una_muerte_anunciada.png");
                             break;
                         default:
                             break;
                     }
+
                     setCooldown(player, true);
                 }
             }
@@ -212,7 +242,7 @@ public class InteractionListener implements Listener {
     }
 
     private void broadcastLibroMessage(Player player, String libro) {
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "playimage "+ player.getName()+ " 100 50 50 0 15 0 https://media.mbpcreators.com/"+libro);
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "playimage "+ player.getName()+ " 100 100 100 0 15 0 https://media.mbpcreators.com/"+libro);
     }
 
     private void handleEstanteInteraction(Player player, Interaction interaction, String estanteTag) {
@@ -324,8 +354,14 @@ public class InteractionListener implements Listener {
                 return;
             }
         }
+        displayManager = new DisplayManager();
+        for(Player p : Bukkit.getOnlinePlayers()) {
+            if(p.isOp()){
+                p.sendMessage(ChatColor.of("#32a852") + "Completado!");
+                displayManager.removeDisplayAndBarriers();
+            }
+        }
 
-        Bukkit.broadcastMessage(ChatColor.of("#32a852") + "Completado!");
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"door two d true");
     }
 

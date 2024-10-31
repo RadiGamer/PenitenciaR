@@ -1,11 +1,6 @@
 package org.imradigamer.chainPlugin.Glass;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -106,6 +101,7 @@ public class GlassBreakAnimation {
                         //p.sendBlockDamage(glassBlock.getLocation(), 0f);
                     }
                     glassBlock.getWorld().playSound(glassBlock.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0f, 1.0f);
+
                     brokenBlocks++;
                     cancel();
                 }
@@ -120,13 +116,22 @@ public class GlassBreakAnimation {
 
                 glassBlock.setType(Material.AIR);
 
-                glassBlock.getWorld().playSound(glassBlock.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "execute as @e[tag=aj.pinchos.root] run function animated_java:pinchos/animations/start/resume");
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"execute as @e[tag=aj.pinchos.root] run function animated_java:pinchos/animations/start/resume");
+
             }
         }
         Location startbarrier = new Location(world, 139, 56, -49);
         Location endbarrier = new Location(world, 129, 59, -49);
+
+        Location barrierPost1 = new Location(world,139, 57, -51);
+        Location barrierPost2 = new Location(world,129, 56, -51);
+
         replaceBarriersWithAir(startbarrier, endbarrier);
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            placeBarriers(barrierPost1,barrierPost2);
+        }, 300L);
+
     }
     public void replaceBarriersWithAir(Location start, Location end) {
         int minX = Math.min(start.getBlockX(), end.getBlockX());
@@ -142,6 +147,25 @@ public class GlassBreakAnimation {
                     Block block = world.getBlockAt(x, y, z);
                     if (block.getType() == Material.BARRIER) {
                         block.setType(Material.AIR);
+                    }
+                }
+            }
+        }
+    }
+    public void placeBarriers(Location start, Location end) {
+        int minX = Math.min(start.getBlockX(), end.getBlockX());
+        int maxX = Math.max(start.getBlockX(), end.getBlockX());
+        int minY = Math.min(start.getBlockY(), end.getBlockY());
+        int maxY = Math.max(start.getBlockY(), end.getBlockY());
+        int minZ = Math.min(start.getBlockZ(), end.getBlockZ());
+        int maxZ = Math.max(start.getBlockZ(), end.getBlockZ());
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    if (block.getType() == Material.AIR) {
+                        block.setType(Material.BARRIER);
                     }
                 }
             }

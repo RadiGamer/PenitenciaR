@@ -1,12 +1,14 @@
 package org.imradigamer.chainPlugin.Chains;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.imradigamer.chainPlugin.ChainPlugin;
@@ -42,8 +44,39 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "timer delete b6ea1");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "execute as @e[tag=aj.trituradora.root] run function animated_java:trituradora/animations/on/pause");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopblink");
+            for(Player player : Bukkit.getOnlinePlayers()) {
+                ChainManager.removeHeadBand(player);
+            }
             sender.sendMessage("Adios cadenas");
             return true;
+
+
+        }
+        if (args[0].equalsIgnoreCase("images")) {
+            boolean toggle = true;
+            removeTripwireHooksFromAllInventories();
+            for (Player players : Bukkit.getOnlinePlayers()) {
+                if (players.hasPermission("chain.desgraciados") && players.getGameMode()== GameMode.ADVENTURE) {
+                    ItemStack key = new ItemStack(Material.RAW_GOLD);
+                    ItemMeta meta = key.getItemMeta();
+
+                    if (meta != null) {
+                        if (toggle) {
+                            meta.setCustomModelData(15);
+                            meta.setDisplayName(" ");
+                        } else {
+                            meta.setCustomModelData(16);
+                            meta.setDisplayName(" ");
+                        }
+                        key.setItemMeta(meta);
+                        players.getInventory().addItem(key);
+
+                        toggle = !toggle;
+                    }
+                }
+            }
+            return true;
+
         }
 
         if (sender instanceof Player) {
@@ -93,9 +126,9 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
 
                 case "roleplayer":
                     ChainManager.setKeyActive(true);
-                    Bukkit.dispatchCommand(player, "execute as @e[tag=aj.trituradora.root] run function animated_java:trituradora/animations/on/resume");
-                    Bukkit.dispatchCommand(player, "timer create b6ea1 3m WHITE");
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "startblink");
+                    Bukkit.dispatchCommand(player, "timer create b6ea1 1m WHITE");
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"startblink");
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "execute as @e[tag=aj.trituradora.root] run function animated_java:trituradora/animations/on/resume");
                     player.sendMessage("El roleplayer ya puede usar la llave");
                     break;
 
@@ -104,7 +137,6 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
             }
         } else {
             if (args[0].equalsIgnoreCase("key") || args[0].equalsIgnoreCase("roleplayer") || args[0].equalsIgnoreCase("free") || args[0].equalsIgnoreCase("start") || args[0].equalsIgnoreCase("origin")) {
-                sender.sendMessage("This command can only be run by a player.");
             }
         }
 
@@ -130,6 +162,7 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
             completions.add("stop");
             completions.add("key");
             completions.add("free");
+            completions.add("images");
             completions.add("roleplayer");
         } else if (args.length >= 2 && "key".equals(args[0].toLowerCase())) {
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -151,5 +184,16 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
 
         plugin.saveConfig();
         player.sendMessage("Location " + nextLocationIndex + " saved.");
+    }
+    public static void removeTripwireHooksFromAllInventories() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Inventory inventory = player.getInventory();
+            for (int i = 0; i < inventory.getSize(); i++) {
+                ItemStack item = inventory.getItem(i);
+                if (item != null && item.getType() == Material.TRIPWIRE_HOOK) {
+                    inventory.setItem(i, null);  // Removes the tripwire hook
+                }
+            }
+        }
     }
 }
