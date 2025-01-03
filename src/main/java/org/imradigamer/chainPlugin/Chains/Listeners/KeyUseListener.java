@@ -30,14 +30,14 @@ public class KeyUseListener implements Listener {
                 if (ChainManager.isKeyActive()) {
                     if (ChainManager.isPlayerChained(player)) {
                         ChainManager.clearPlayerChain(player);
-                        ChainManager.setKeyUsed(true);
+                           ChainManager.setKeyUsed(true);
                         if (item.getAmount() > 1) {
                             item.setAmount(item.getAmount() - 1);
                         } else {
                             player.getInventory().remove(item);
                         }
                     }
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> ChainManager.freePlayersWithoutPermission("chain.desgraciados"), 300L);  // 600 ticks = 30 seconds //TODO TIEMPO DE ESTA MADREEEEEEEE
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> ChainManager.freePlayersWithoutPermission("chain.desgraciados"), 820L);  // 600 ticks = 30 seconds //TODO TIEMPO DE ESTA MADREEEEEEEE
                 }
             }
         }

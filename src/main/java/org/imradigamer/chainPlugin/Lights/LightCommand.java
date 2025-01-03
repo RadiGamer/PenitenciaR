@@ -38,6 +38,16 @@ public class LightCommand implements CommandExecutor {
                 new Location(Bukkit.getWorld("world"), 11, 95, -91),
                 8
         ));
+        rooms.put("hater", new Room(
+                new Location(Bukkit.getWorld("world"), 26, 94, -85),
+                new Location(Bukkit.getWorld("world"), 33, 94, -77),
+                15
+        ));
+        rooms.put("interrogatorio", new Room(
+                new Location(Bukkit.getWorld("world"), 134, 56, -55),
+                new Location(Bukkit.getWorld("world"), 134, 56, -55),
+                15
+        ));
     }
 
     @Override

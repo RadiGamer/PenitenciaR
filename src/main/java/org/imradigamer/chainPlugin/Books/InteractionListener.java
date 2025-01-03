@@ -3,6 +3,7 @@ package org.imradigamer.chainPlugin.Books;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
@@ -21,9 +22,12 @@ import java.util.UUID;
 public class InteractionListener implements Listener {
 
     private final Map<UUID, BookData> estanteBooks = new HashMap<>();
-    private static final long COOLDOWN_TIME = 3500;
-    private final HashMap<UUID, Long> cooldowns = new HashMap<>();
-
+    private static final long COOLDOWN_TIME_BOOKS = 14500;
+    private static final long COOLDOWN_TIME_NOTES = 7500;
+    private final HashMap<UUID, Long> cooldowns_books = new HashMap<>();
+    private final HashMap<UUID, Long> cooldowns_notes = new HashMap<>();
+    private DisplayManager displayManager;
+  
     @EventHandler
     public void onPlayerInteract(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
@@ -36,12 +40,12 @@ public class InteractionListener implements Listener {
                 String visualLibroTag = "visual_libro_" + i;
 
                 if (interaction.getScoreboardTags().contains(libroTag)) {
-                    giveBookToPlayer(player, i);
+                    boolean bookGiven = giveBookToPlayer(player, i);
 
-                    updateVisualBook(interaction, visualLibroTag, i);
-
-                    interaction.remove();
-
+                    if (bookGiven) {
+                        updateVisualBook(interaction, visualLibroTag, i);
+                        interaction.remove();
+                    }
                     return;
                 }
             }
@@ -55,18 +59,86 @@ public class InteractionListener implements Listener {
             }
         }
     }
-    private void giveBookToPlayer(Player player, int libroNumber) {
+    @EventHandler
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+        Entity entity = event.getRightClicked();
+
+        Map<String, String> titleMap = new HashMap<>();
+        titleMap.put("nota_1", "ꐽ");
+        titleMap.put("nota_2", "ꐾ");
+        titleMap.put("nota_3", "ꐿ");
+        titleMap.put("nota_4", "ꑀ");
+        titleMap.put("nota_5", "ꑁ");
+        titleMap.put("nota_6", "ꑂ");
+        titleMap.put("nota_7", "ꑃ");
+        titleMap.put("nota_8", "ꑄ");
+        titleMap.put("nota_9", "ꑅ");
+        titleMap.put("nota_10", "ꑆ");
+        titleMap.put("nota_laberinto", "ꐼ");
+        titleMap.put("nota_pasillo", "ꐻ");
+
+        // Define commandMap with both key and value types
+        Map<String, String> commandMap = new HashMap<>();
+        commandMap.put("Libro_veneno", "playimage " + player.getName() + " 100 100 100 1 6 1 https://media.mbpcreators.com/libro_cuadros.png");
+
+        if (entity instanceof Interaction) {
+            Interaction interaction = (Interaction) entity;
+            UUID playerUUID = player.getUniqueId();
+
+            if (isPlayerOnCooldown_notes(playerUUID)) {
+                player.sendTitle(" ", "", 1, 1, 1);
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopimage " + player.getName());
+                removeCooldown_notes(player);
+                return;
+            }
+
+            // Handle title interactions
+            for (Map.Entry<String, String> entry : titleMap.entrySet()) {
+                String tag = entry.getKey();
+                String title = entry.getValue();
+
+                if (interaction.getScoreboardTags().contains(tag)) {
+                    setCooldown(player, false);
+                    player.sendTitle(title, "", 5, 100, 5); // Title timings
+                    return;
+                }
+            }
+
+            // Handle command interactions
+            for (Map.Entry<String, String> entry : commandMap.entrySet()) {
+                String tag = entry.getKey();
+                String command = entry.getValue();
+
+                if (interaction.getScoreboardTags().contains(tag)) {
+                    setCooldown(player, false);
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                    return;
+                }
+            }
+        }
+    }
+
+    private boolean giveBookToPlayer(Player player, int libroNumber) {
         ItemStack book = new ItemStack(Material.LEATHER);
         ItemMeta meta = book.getItemMeta();
         if (meta != null) {
             meta.setCustomModelData(getCustomModelDataForLibro(libroNumber));
             meta.setDisplayName(" ");
             book.setItemMeta(meta);
-
         }
 
-        player.getInventory().addItem(book);
-        player.sendMessage("Has recibido el libro " + libroNumber);
+        for (int i = 0; i < 9; i++) {
+            if (player.getInventory().getItem(i) == null) {
+                player.getInventory().setItem(i, book);
+                return true;
+            }
+        }
+
+        // No space in the hotbar
+        player.sendMessage(ChatColor.RED + "No tienes espacio en la barra de acceso rápido para recibir el libro.");
+        return false;
+
     }
 
     private int getCustomModelDataForLibro(int libroNumber) {
@@ -84,7 +156,7 @@ public class InteractionListener implements Listener {
             case 6:
                 return 30;
             case 7:
-                return 36;
+                return 51;
             case 8:
                 return 31;
             case 9:
@@ -114,9 +186,10 @@ public class InteractionListener implements Listener {
             ItemStack itemInHand = player.getInventory().getItemInMainHand();
 
             UUID playerUUID = player.getUniqueId();
-
-            if (isPlayerOnCooldown(playerUUID)) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopimage "+player.getName());
+          
+            if (isPlayerOnCooldown_books(playerUUID)) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopimage " + player.getName());
+                removeCooldown_books(player);
                 return;
             }
 
@@ -127,46 +200,48 @@ public class InteractionListener implements Listener {
 
                     switch (customModelData) {
                         case 26:
-                            broadcastLibroMessage(player,"1_El_Principito.png");
+                            broadcastLibroMessage(player, "1_El_Principito.png");
                             break;
                         case 43:
-                            broadcastLibroMessage(player,"2_Don_quijote_de_la_mancha.png");
+                            broadcastLibroMessage(player, "2_Don_quijote_de_la_mancha.png");
                             break;
                         case 27:
-                            broadcastLibroMessage(player,"3_La_biblia.png");
+                            broadcastLibroMessage(player, "3_La_biblia.png");
                             break;
                         case 28:
-                            broadcastLibroMessage(player,"4_cien_años_de_soledad.png");
+                            broadcastLibroMessage(player, "4_cien_años_de_soledad.png");
                             break;
                         case 29:
-                            broadcastLibroMessage(player,"5_Divina_comedia.png");
+                            broadcastLibroMessage(player, "5_Divina_comedia.png");
                             break;
                         case 30:
                             broadcastLibroMessage(player, "6_El_enigma_sagrado.png");
                             break;
-                        case 36:
-                            broadcastLibroMessage(player,"7_El_cuervo.png");
+                        case 51:
+                            broadcastLibroMessage(player, "7_El_cuervo.png");
                             break;
                         case 31:
-                            broadcastLibroMessage(player,"8_El_hombre_de_tiza.png");
+                            broadcastLibroMessage(player, "8_El_hombre_de_tiza.png");
                             break;
                         case 32:
-                            broadcastLibroMessage(player,"9_El_monje_que_vendió_su_ferrari.png");
+                            broadcastLibroMessage(player, "9_El_monje_que_vendió_su_ferrari.png");
                             break;
                         case 33:
-                            broadcastLibroMessage(player,"10_Cronicas_de_una_muerte_anunciada.png");
+                            broadcastLibroMessage(player, "10_Cronicas_de_una_muerte_anunciada.png");
+
                             break;
                         default:
                             break;
                     }
-                    setCooldown(player);
+
+                    setCooldown(player, true);
                 }
             }
         }
     }
 
     private void broadcastLibroMessage(Player player, String libro) {
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "playimage "+ player.getName()+ " 100 50 50 0.5 3 0.5 https://media.mbpcreators.com/"+libro);
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "playimage "+ player.getName()+ " 100 100 100 0 15 0 https://media.mbpcreators.com/"+libro);
     }
 
     private void handleEstanteInteraction(Player player, Interaction interaction, String estanteTag) {
@@ -253,7 +328,7 @@ public class InteractionListener implements Listener {
         estanteRequirements.put("estante_4", 28);
         estanteRequirements.put("estante_5", 29);
         estanteRequirements.put("estante_6", 30);
-        estanteRequirements.put("estante_7", 36);
+        estanteRequirements.put("estante_7", 51);
         estanteRequirements.put("estante_8", 31);
         estanteRequirements.put("estante_9", 32);
         estanteRequirements.put("estante_10", 33);
@@ -278,8 +353,15 @@ public class InteractionListener implements Listener {
                 return;
             }
         }
+        displayManager = new DisplayManager();
+        for(Player p : Bukkit.getOnlinePlayers()) {
+            if(p.isOp()){
+                p.sendMessage(ChatColor.of("#32a852") + "Completado!");
+                displayManager.removeDisplayAndBarriers();
+            }
+        }
 
-        Bukkit.broadcastMessage(ChatColor.of("#32a852") + "Completado!");
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"door two d true");
     }
 
     private boolean matchesLibro(int customModelData, int libroNumber) {
@@ -297,7 +379,7 @@ public class InteractionListener implements Listener {
             case 6:
                 return customModelData == 30;
             case 7:
-                return customModelData == 36;
+                return customModelData == 51;
             case 8:
                 return customModelData == 31;
             case 9:
@@ -308,19 +390,35 @@ public class InteractionListener implements Listener {
                 return false;
         }
     }
-
-    private void setCooldown(Player player) {
-        cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+    private void setCooldown(Player player, Boolean books) {
+        if(books){
+        cooldowns_books.put(player.getUniqueId(), System.currentTimeMillis());
+        }else{
+            cooldowns_notes.put(player.getUniqueId(), System.currentTimeMillis());
+        }
     }
-    private boolean isPlayerOnCooldown(UUID playerUUID) {
-        if (!cooldowns.containsKey(playerUUID)) {
+    private void removeCooldown_books(Player player) {
+        cooldowns_books.remove(player.getUniqueId());
+    }
+    private void removeCooldown_notes(Player player) {
+        cooldowns_notes.remove(player.getUniqueId());
+    }
+    private boolean isPlayerOnCooldown_books(UUID playerUUID) {
+        if (!cooldowns_books.containsKey(playerUUID)) {
             return false;
         }
 
-        long lastInteractionTime = cooldowns.get(playerUUID);
-        return (System.currentTimeMillis() - lastInteractionTime) < COOLDOWN_TIME;
+        long lastInteractionTime = cooldowns_books.get(playerUUID);
+        return (System.currentTimeMillis() - lastInteractionTime) < COOLDOWN_TIME_BOOKS;
     }
+    private boolean isPlayerOnCooldown_notes(UUID playerUUID) {
+        if (!cooldowns_notes.containsKey(playerUUID)) {
+            return false;
+        }
 
+        long lastInteractionTime = cooldowns_notes.get(playerUUID);
+        return (System.currentTimeMillis() - lastInteractionTime) < COOLDOWN_TIME_NOTES;
+    }
     public Map<UUID, BookData> getEstanteBooks() {
         return estanteBooks;
     }

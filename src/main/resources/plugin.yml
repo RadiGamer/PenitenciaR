@@ -34,3 +34,36 @@ commands:
   lights:
     description: Control de las luces
     usage: /lights
+  boots:
+    description: Control de las botas
+    usage: /boots
+  bucket:
+    description: Control de las cubetas
+    usage: /bucket
+  audio:
+    description: Control de los casettes
+    usage: /audio <restart>
+  creditsred:
+    description: Comienza los creditos para
+    usage: /credits <nickname>
+  creditsblack:
+    description: Comienza los creditos para
+    usage: /creditsblack <nickname>
+  cajafuerte:
+    description: Control de la caja fuerte
+    usage: /safe restart
+  circo:
+    description: Controla las puertas del circo
+    usage: /circo <1/2> <abrir/cerrar>
+  day3:
+    description: Comando del dia3
+    usage: /day3
+  jigsaw:
+    description: Comando del Jigsaw
+    usage: /day3
+  enddoor:
+    description: Controla la puerta del final
+    usage: /enddoor
+  resetenddoor:
+    description: Controla la puerta del final
+    usage: /enddoor
