@@ -46,7 +46,6 @@ public class ChainManager implements Listener {
         Player player = event.getPlayer();
 
         if (isPlayerChained(player)) {
-            // Add the player's UUID to the previously chained set
             previouslyChainedPlayers.add(player.getUniqueId());
 
             clearPlayerChain(player);
@@ -60,13 +59,11 @@ public class ChainManager implements Listener {
         Player player = event.getPlayer();
 
         if (previouslyChainedPlayers.contains(player.getUniqueId())) {
-            // Chain the player back when they rejoin
             chainPlayer(player);
 
             previouslyChainedPlayers.remove(player.getUniqueId());
         }
     }
-
 
     public static void startChainingPlayers(World world, ChainPlugin plugin) {
         List<Player> adventurePlayers = world.getPlayers().stream()
@@ -74,23 +71,23 @@ public class ChainManager implements Listener {
                 .collect(Collectors.toList());
 
         if (adventurePlayers.isEmpty()) {
-            Bukkit.getLogger().info("No adventure mode players detected");
+            Bukkit.getLogger().info("No se detectaron jugadores en modo aventura");
             return;
         }
 
         List<Player> specialPlayers = new ArrayList<>();
         List<Player> normalPlayers = new ArrayList<>();
 
-        // Classify players by permission
         for (Player player : adventurePlayers) {
             if (player.hasPermission("chain.desgraciados")) {
                 specialPlayers.add(player);
-                disgraciadosPlayers.add(player.getUniqueId());  // Track disgraciados players
-                equipHeadBand(player);  // Equip the headband
+                disgraciadosPlayers.add(player.getUniqueId());  
+                equipHeadBand(player);  
             } else {
                 normalPlayers.add(player);
                 ChainCommand chainCommand = new ChainCommand(plugin);
-                chainCommand.giveKey(player);  // Give the key to the player
+                chainCommand.giveKey(player);  
+
             }
         }
 
@@ -160,7 +157,6 @@ public class ChainManager implements Listener {
             initialChainingLocations.put(player, playerLocation);
         }
     }
-
 
     private static float calculateYaw(Vector direction) {
         double dx = direction.getX();
@@ -373,5 +369,4 @@ public class ChainManager implements Listener {
         ChainManager.keyActive = keyActive;
     }
     public static void resetKeyActive() {keyActive = false;}
-
 }

@@ -13,7 +13,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.imradigamer.chainPlugin.ChainPlugin;
 
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
@@ -139,7 +138,6 @@ public class ChainCommand implements CommandExecutor, TabCompleter {
             if (args[0].equalsIgnoreCase("key") || args[0].equalsIgnoreCase("roleplayer") || args[0].equalsIgnoreCase("free") || args[0].equalsIgnoreCase("start") || args[0].equalsIgnoreCase("origin")) {
             }
         }
-
         return true;
     }
 

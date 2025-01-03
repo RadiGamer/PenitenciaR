@@ -27,9 +27,7 @@ public class InteractionListener implements Listener {
     private final HashMap<UUID, Long> cooldowns_books = new HashMap<>();
     private final HashMap<UUID, Long> cooldowns_notes = new HashMap<>();
     private DisplayManager displayManager;
-
-
-
+  
     @EventHandler
     public void onPlayerInteract(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
@@ -48,7 +46,6 @@ public class InteractionListener implements Listener {
                         updateVisualBook(interaction, visualLibroTag, i);
                         interaction.remove();
                     }
-
                     return;
                 }
             }
@@ -123,7 +120,6 @@ public class InteractionListener implements Listener {
     }
 
     private boolean giveBookToPlayer(Player player, int libroNumber) {
-        // Create the book item with custom model data
         ItemStack book = new ItemStack(Material.LEATHER);
         ItemMeta meta = book.getItemMeta();
         if (meta != null) {
@@ -142,6 +138,7 @@ public class InteractionListener implements Listener {
         // No space in the hotbar
         player.sendMessage(ChatColor.RED + "No tienes espacio en la barra de acceso rápido para recibir el libro.");
         return false;
+
     }
 
     private int getCustomModelDataForLibro(int libroNumber) {
@@ -189,12 +186,13 @@ public class InteractionListener implements Listener {
             ItemStack itemInHand = player.getInventory().getItemInMainHand();
 
             UUID playerUUID = player.getUniqueId();
-
+          
             if (isPlayerOnCooldown_books(playerUUID)) {
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stopimage " + player.getName());
                 removeCooldown_books(player);
                 return;
             }
+
             if (itemInHand != null && itemInHand.getType() == Material.LEATHER) {
                 ItemMeta meta = itemInHand.getItemMeta();
                 if (meta != null && meta.hasCustomModelData()) {
@@ -230,6 +228,7 @@ public class InteractionListener implements Listener {
                             break;
                         case 33:
                             broadcastLibroMessage(player, "10_Cronicas_de_una_muerte_anunciada.png");
+
                             break;
                         default:
                             break;
@@ -391,7 +390,6 @@ public class InteractionListener implements Listener {
                 return false;
         }
     }
-
     private void setCooldown(Player player, Boolean books) {
         if(books){
         cooldowns_books.put(player.getUniqueId(), System.currentTimeMillis());
@@ -421,8 +419,6 @@ public class InteractionListener implements Listener {
         long lastInteractionTime = cooldowns_notes.get(playerUUID);
         return (System.currentTimeMillis() - lastInteractionTime) < COOLDOWN_TIME_NOTES;
     }
-
-
     public Map<UUID, BookData> getEstanteBooks() {
         return estanteBooks;
     }

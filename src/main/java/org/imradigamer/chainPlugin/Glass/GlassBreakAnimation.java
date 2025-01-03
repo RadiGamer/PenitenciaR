@@ -101,7 +101,6 @@ public class GlassBreakAnimation {
                         //p.sendBlockDamage(glassBlock.getLocation(), 0f);
                     }
                     glassBlock.getWorld().playSound(glassBlock.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0f, 1.0f);
-
                     brokenBlocks++;
                     cancel();
                 }

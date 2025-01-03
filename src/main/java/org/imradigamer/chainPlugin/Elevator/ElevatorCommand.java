@@ -99,7 +99,7 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
                     }
                 }.runTaskLater(plugin, 100L);
             }
-        }.runTaskLater(plugin, 40L);  // Delay the entire sequence by 2 seconds (40 ticks)
+        }.runTaskLater(plugin, 40L); 
     }
 
 
@@ -145,10 +145,8 @@ public class ElevatorCommand implements CommandExecutor, TabCompleter {
                     }
                 }.runTaskLater(plugin, 100L);
             }
-        }.runTaskLater(plugin, 40L);  // This delays the entire sequence by 2 seconds (40 ticks)
+        }.runTaskLater(plugin, 40L); 
     }
-
-
 
     private void checkElevator1() {
         for (Player player : plugin.getServer().getOnlinePlayers()) {

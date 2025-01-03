@@ -68,7 +68,6 @@ public class ChainPlugin extends JavaPlugin {
         interactionListener = new InteractionListener();
         LightCommand lightCommand = new LightCommand();
         audioListener = new AudioInteractionListener();
-        //  doorManager = new DoorManager(this);
         chainManager = new ChainManager(this);
         barrierManager = new BarrierManager();
         itemDisplayManager = new ItemDisplayManager();
@@ -108,10 +107,6 @@ public class ChainPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new StatueListener(), this);
         getServer().getPluginManager().registerEvents(new SafeInteractListener(), this);
         getServer().getPluginManager().registerEvents(new org.imradigamer.chainPlugin.Circus.InteractionListener(this), this);
-
-
-
-
     }
 
     @Override

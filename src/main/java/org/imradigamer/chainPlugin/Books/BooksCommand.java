@@ -21,7 +21,6 @@ public class BooksCommand implements CommandExecutor, TabCompleter {
 
     private final Map<UUID, BookData> estanteBooks;
     private DisplayManager displayManager;
-
     public BooksCommand(Map<UUID, BookData> estanteBooks) {
         this.estanteBooks = estanteBooks;
     }
@@ -140,4 +139,5 @@ public class BooksCommand implements CommandExecutor, TabCompleter {
         }
         return Collections.emptyList();
     }
+
 }
